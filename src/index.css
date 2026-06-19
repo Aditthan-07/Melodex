@@ -1,0 +1,94 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    background-color: #070608;
+    color: #e8e4df;
+    font-family: 'Inter', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow: hidden;
+  }
+
+  * { box-sizing: border-box; }
+
+  ::-webkit-scrollbar { width: 3px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #2a2830; border-radius: 2px; }
+  ::-webkit-scrollbar-thumb:hover { background: #3d3a48; }
+
+  input[type='range'] {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 4px;
+    border-radius: 2px;
+    outline: none;
+    cursor: pointer;
+  }
+
+  input[type='range']::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #c8955a;
+    cursor: pointer;
+    box-shadow: 0 0 4px rgba(200,149,90,0.4);
+    transition: background 0.15s ease;
+  }
+
+  input[type='range']::-webkit-slider-thumb:hover { background: #e0aa70; }
+  input[type='range']::-webkit-slider-runnable-track { background: #1c1a22; border-radius: 2px; }
+}
+
+@layer utilities {
+  .scrollbar-none { -ms-overflow-style: none; scrollbar-width: none; }
+  .scrollbar-none::-webkit-scrollbar { display: none; }
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes waveBar1 { 0%,100% { height: 5px; } 50% { height: 13px; } }
+@keyframes waveBar2 { 0%,100% { height: 9px; } 50% { height: 3px; } }
+@keyframes waveBar3 { 0%,100% { height: 3px; } 50% { height: 11px; } }
+
+.animate-fade-in-up { animation: fadeInUp 0.45s ease-out forwards; }
+.wave-bar-1 { animation: waveBar1 0.65s ease-in-out infinite; }
+.wave-bar-2 { animation: waveBar2 0.55s ease-in-out infinite 0.1s; }
+.wave-bar-3 { animation: waveBar3 0.75s ease-in-out infinite 0.2s; }
+
+@keyframes vinylSpin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+.vinyl-spin {
+  animation: vinylSpin 1.8s linear infinite;
+  will-change: transform;
+  backface-visibility: hidden;
+}
+
+@keyframes labelShimmer {
+  0%   { box-shadow: 0 0 0px 0px rgba(212,175,92,0); }
+  50%  { box-shadow: 0 0 18px 4px rgba(212,175,92,0.18); }
+  100% { box-shadow: 0 0 0px 0px rgba(212,175,92,0); }
+}
+
+.label-glow {
+  animation: labelShimmer 3s ease-in-out infinite;
+}
+
+@keyframes platterGlow {
+  0%, 100% { opacity: 0.55; transform: scaleX(1); }
+  50%       { opacity: 1;    transform: scaleX(1.06); }
+}
+
+.platter-glow {
+  animation: platterGlow 2.4s ease-in-out infinite;
+}
