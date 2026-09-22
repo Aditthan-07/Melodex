@@ -2,12 +2,13 @@ import React, { useState, useEffect, useRef } from 'react';
 import {
   Play, Pause, SkipForward, SkipBack, Shuffle, Repeat,
   Volume2, VolumeX, Search, FolderOpen, Upload, Disc,
-  Music, Sparkles, Zap,
+  Music, Sparkles, Zap, Sliders,
 } from 'lucide-react';
 import { Track, TurntableSettings, PlaybackState } from './types';
 import { audioEngine } from './utils/audioEngine';
 import { Turntable3D } from './components/Turntable3D';
 import { AudioVisualizer } from './components/AudioVisualizer';
+import { EqualizerModal } from './components/EqualizerModal';
 
 const getRandomIndex = (length: number): number => {
   return Math.floor(Math.random() * length);
@@ -20,6 +21,7 @@ export default function App() {
   const [playbackState, setPlaybackState] = useState<PlaybackState>('stopped');
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
+  const [isEQOpen, setIsEQOpen] = useState(false);
   const [settings, setSettings] = useState<TurntableSettings>({
     pitch: 0.0,
     speed: 33,
@@ -430,8 +432,28 @@ export default function App() {
               {settings.pitch > 0 ? '+' : ''}{settings.pitch.toFixed(1)}%
             </span>
           </div>
+
+          <button
+            onClick={() => setIsEQOpen(true)}
+            title="3-Band Parametric Equalizer"
+            className={`flex items-center gap-1 px-2 py-1 rounded-lg border text-xs font-mono transition-all cursor-pointer ${
+              settings.eq.bass !== 0 || settings.eq.mid !== 0 || settings.eq.treble !== 0
+                ? 'bg-amber-500/20 border-amber-500/50 text-amber-300 shadow-sm'
+                : 'bg-zinc-900/80 border-zinc-800 text-zinc-400 hover:text-zinc-200 hover:border-zinc-700'
+            }`}
+          >
+            <Sliders className="w-3 h-3" />
+            <span className="text-[10px] hidden sm:inline">EQ</span>
+          </button>
         </div>
       </div>
+
+      <EqualizerModal
+        isOpen={isEQOpen}
+        onClose={() => setIsEQOpen(false)}
+        eq={settings.eq}
+        onChange={(newEQ) => setSettings((s) => ({ ...s, eq: newEQ }))}
+      />
     </div>
   );
 }
