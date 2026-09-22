@@ -7,6 +7,7 @@ import {
 import { Track, TurntableSettings, PlaybackState } from './types';
 import { audioEngine } from './utils/audioEngine';
 import { Turntable3D } from './components/Turntable3D';
+import { AudioVisualizer } from './components/AudioVisualizer';
 
 const getRandomIndex = (length: number): number => {
   return Math.floor(Math.random() * length);
@@ -232,6 +233,11 @@ export default function App() {
           <span className="text-[9px] font-mono tracking-[0.22em] text-amber-600/80 font-semibold uppercase">High Fidelity Direct Drive</span>
           <h1 className="text-lg font-serif font-bold text-zinc-100 tracking-tight leading-none mt-0.5">Melodex</h1>
         </div>
+
+        <div className="hidden sm:flex items-center">
+          <AudioVisualizer isPlaying={playbackState === 'playing'} />
+        </div>
+
         <div className="flex items-center gap-2">
           {tracks.length > 0 && (
             <div className="flex items-center gap-2">
