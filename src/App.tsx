@@ -9,6 +9,7 @@ import { audioEngine } from './utils/audioEngine';
 import { Turntable3D } from './components/Turntable3D';
 import { AudioVisualizer } from './components/AudioVisualizer';
 import { EqualizerModal } from './components/EqualizerModal';
+import { generateDemoTracks } from './utils/demoGenerator';
 
 const getRandomIndex = (length: number): number => {
   return Math.floor(Math.random() * length);
@@ -205,6 +206,20 @@ export default function App() {
     }
   };
 
+  const handleLoadDemoTracks = async () => {
+    const demos = generateDemoTracks();
+    setTracks(demos);
+    setActiveTrackIndex(0);
+    setCurrentTime(0);
+    setDuration(demos[0].duration);
+    await audioEngine.setTrack(demos[0]);
+    setTimeout(() => {
+      setSettings(p => ({ ...p, cueingLeverUp: false }));
+      setPlaybackState('playing');
+      audioEngine.play();
+    }, 450);
+  };
+
   const fmt = (s: number) => {
     if (!s || isNaN(s) || !isFinite(s)) return '0:00';
     return `${Math.floor(s / 60)}:${Math.floor(s % 60).toString().padStart(2, '0')}`;
@@ -297,14 +312,21 @@ export default function App() {
                 <p className="text-[11px] text-zinc-500 max-w-xs leading-relaxed mt-1.5">Open a local folder or pick individual audio files to start playing.</p>
               </div>
               <div className="flex flex-col w-full gap-2 px-2 mt-1">
-                <button onClick={handleOpenFolder}
-                  className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-amber-500 hover:bg-amber-400 active:scale-95 text-zinc-950 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-lg shadow-amber-500/20">
-                  <FolderOpen className="w-4 h-4" /><span>Open Local Music Folder</span>
+                <button
+                  onClick={handleLoadDemoTracks}
+                  className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600 hover:brightness-110 active:scale-95 text-zinc-950 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-lg shadow-amber-500/25"
+                >
+                  <Sparkles className="w-4 h-4" />
+                  <span>Spin Demo Vinyl (Lo-Fi Jazz)</span>
                 </button>
-                <div className="text-center text-[10px] text-zinc-600 font-mono">or</div>
+                <div className="text-center text-[10px] text-zinc-600 font-mono">or load your own audio</div>
+                <button onClick={handleOpenFolder}
+                  className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-zinc-900/80 hover:bg-zinc-800/80 border border-zinc-800 active:scale-95 text-zinc-200 rounded-xl text-xs font-medium transition-all cursor-pointer">
+                  <FolderOpen className="w-4 h-4 text-amber-500/80" /><span>Open Local Music Folder</span>
+                </button>
                 <button onClick={() => fileInputRef.current?.click()}
-                  className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-amber-500 hover:bg-amber-400 active:scale-95 text-zinc-950 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-lg shadow-amber-500/20">
-                  <Upload className="w-4 h-4" /><span>Choose Audio Files</span>
+                  className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-zinc-900/80 hover:bg-zinc-800/80 border border-zinc-800 active:scale-95 text-zinc-200 rounded-xl text-xs font-medium transition-all cursor-pointer">
+                  <Upload className="w-4 h-4 text-amber-500/80" /><span>Choose Audio Files</span>
                 </button>
               </div>
             </div>
@@ -312,7 +334,16 @@ export default function App() {
             <div className="flex-1 flex flex-col min-h-0 gap-3">
               <div className="flex items-center justify-between flex-shrink-0">
                 <span className="text-[9px] font-mono font-semibold tracking-[0.18em] text-zinc-500 uppercase">Record Shelf</span>
-                <span className="text-[9px] font-mono text-zinc-600">{filteredTracks.length} / {tracks.length}</span>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={handleLoadDemoTracks}
+                    title="Load Demo Lo-Fi Vinyl"
+                    className="text-[9px] font-mono text-amber-400 hover:text-amber-300 transition-colors cursor-pointer"
+                  >
+                    + Demo Vinyl
+                  </button>
+                  <span className="text-[9px] font-mono text-zinc-600">{filteredTracks.length} / {tracks.length}</span>
+                </div>
               </div>
               <div className="relative flex-shrink-0">
                 <Search className="absolute left-3 top-2.5 w-3.5 h-3.5 text-zinc-600" />
