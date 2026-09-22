@@ -241,6 +241,23 @@ export default function App() {
         </div>
 
         <div className="flex items-center gap-2">
+          <div className="hidden lg:flex items-center gap-1 bg-zinc-950/90 rounded-lg p-1 border border-zinc-900 text-[10px] font-mono">
+            {(['obsidian', 'walnut', 'silver', 'neon'] as const).map((t) => (
+              <button
+                key={t}
+                onClick={() => setSettings((s) => ({ ...s, theme: t }))}
+                title={`Switch turntable finish to ${t}`}
+                className={`px-2 py-0.5 rounded capitalize transition-all cursor-pointer ${
+                  settings.theme === t
+                    ? 'bg-amber-500 text-zinc-950 font-bold shadow-sm'
+                    : 'text-zinc-500 hover:text-zinc-300'
+                }`}
+              >
+                {t}
+              </button>
+            ))}
+          </div>
+
           {tracks.length > 0 && (
             <div className="flex items-center gap-2">
               <button onClick={handleOpenFolder}
@@ -264,6 +281,7 @@ export default function App() {
         <div className="flex-[1.35] min-h-[220px] md:h-full rounded-2xl overflow-hidden border border-zinc-900/80 shadow-2xl bg-[#030205]/95 flex flex-col">
           <Turntable3D activeTrack={activeTrack} isPlaying={playbackState === 'playing'} pitch={settings.pitch}
             speedMode={settings.speed} cueingLeverUp={settings.cueingLeverUp} crackleVolume={settings.crackleVolume}
+            theme={settings.theme}
             onNeedleDrop={handleNeedleDrop} onNeedleLift={handleNeedleLift} onSettingsChange={handleSettingsFrom3D}
             currentTime={currentTime} duration={duration} />
         </div>

@@ -1,8 +1,67 @@
 import React, { useRef, useEffect, useState } from 'react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { Track, TurntableSettings } from '../types';
+import { Track, TurntableSettings, TurntableTheme } from '../types';
 import { audioEngine } from '../utils/audioEngine';
+
+interface ThemeConfig {
+  plinthColor: number;
+  plinthRoughness: number;
+  plinthMetalness: number;
+  topPlateColor: number;
+  topPlateRoughness: number;
+  topPlateMetalness: number;
+  feltColor: number;
+  pulseColorPlaying: number;
+  pulseColorStandby: number;
+}
+
+const THEME_CONFIGS: Record<TurntableTheme, ThemeConfig> = {
+  obsidian: {
+    plinthColor: 0x3a3c42,
+    plinthRoughness: 0.16,
+    plinthMetalness: 0.88,
+    topPlateColor: 0xb8bcc8,
+    topPlateRoughness: 0.12,
+    topPlateMetalness: 0.97,
+    feltColor: 0x14121a,
+    pulseColorPlaying: 0xffaa44,
+    pulseColorStandby: 0xff7722,
+  },
+  walnut: {
+    plinthColor: 0x4a2a16,
+    plinthRoughness: 0.58,
+    plinthMetalness: 0.15,
+    topPlateColor: 0xd9c288,
+    topPlateRoughness: 0.18,
+    topPlateMetalness: 0.88,
+    feltColor: 0x6e4726,
+    pulseColorPlaying: 0xffcc66,
+    pulseColorStandby: 0xcc8833,
+  },
+  silver: {
+    plinthColor: 0xd0d4de,
+    plinthRoughness: 0.22,
+    plinthMetalness: 0.96,
+    topPlateColor: 0xebf0f8,
+    topPlateRoughness: 0.1,
+    topPlateMetalness: 0.98,
+    feltColor: 0x1e1e24,
+    pulseColorPlaying: 0x88ccff,
+    pulseColorStandby: 0x4488cc,
+  },
+  neon: {
+    plinthColor: 0x161328,
+    plinthRoughness: 0.15,
+    plinthMetalness: 0.92,
+    topPlateColor: 0x241d3d,
+    topPlateRoughness: 0.14,
+    topPlateMetalness: 0.90,
+    feltColor: 0x381238,
+    pulseColorPlaying: 0x00f0ff,
+    pulseColorStandby: 0xaa00bb,
+  },
+};
 
 interface Turntable3DProps {
   activeTrack: Track | null;
@@ -11,6 +70,7 @@ interface Turntable3DProps {
   speedMode: 33 | 45;
   cueingLeverUp: boolean;
   crackleVolume: number;
+  theme?: TurntableTheme;
   onNeedleDrop: (progress: number) => void;
   onNeedleLift: () => void;
   onSettingsChange: (settings: Partial<TurntableSettings & { isPlaying?: boolean; speedMode?: 33 | 45 }>) => void;
@@ -24,6 +84,7 @@ export const Turntable3D: React.FC<Turntable3DProps> = ({
   pitch,
   speedMode,
   cueingLeverUp,
+  theme = 'obsidian',
   onNeedleDrop,
   onNeedleLift,
   onSettingsChange,
@@ -33,6 +94,32 @@ export const Turntable3D: React.FC<Turntable3DProps> = ({
   const mountRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [hoveredPart, setHoveredPart] = useState<string | null>(null);
+  const themeMatsRef = useRef<{
+    plinth?: THREE.MeshStandardMaterial;
+    topPlate?: THREE.MeshStandardMaterial;
+    felt?: THREE.MeshStandardMaterial;
+  } | null>(null);
+
+  const themeRef = useRef(theme);
+  useEffect(() => {
+    themeRef.current = theme;
+    if (!themeMatsRef.current) return;
+    const cfg = THEME_CONFIGS[theme || 'obsidian'];
+    const { plinth, topPlate, felt } = themeMatsRef.current;
+    if (plinth) {
+      plinth.color.setHex(cfg.plinthColor);
+      plinth.roughness = cfg.plinthRoughness;
+      plinth.metalness = cfg.plinthMetalness;
+    }
+    if (topPlate) {
+      topPlate.color.setHex(cfg.topPlateColor);
+      topPlate.roughness = cfg.topPlateRoughness;
+      topPlate.metalness = cfg.topPlateMetalness;
+    }
+    if (felt) {
+      felt.color.setHex(cfg.feltColor);
+    }
+  }, [theme]);
 
   const callbacksRef = useRef({ onNeedleDrop, onNeedleLift, onSettingsChange });
   useEffect(() => {
@@ -131,11 +218,17 @@ export const Turntable3D: React.FC<Turntable3DProps> = ({
     floor.receiveShadow = true;
     scene.add(floor);
 
+    const initThemeCfg = THEME_CONFIGS[themeRef.current || 'obsidian'];
+
     const plinthGroup = new THREE.Group();
     scene.add(plinthGroup);
 
     const plinthBodyGeo = new THREE.BoxGeometry(3.9, 0.38, 3.05);
-    const plinthMat = new THREE.MeshStandardMaterial({ color: 0x3a3c42, roughness: 0.16, metalness: 0.88 });
+    const plinthMat = new THREE.MeshStandardMaterial({
+      color: initThemeCfg.plinthColor,
+      roughness: initThemeCfg.plinthRoughness,
+      metalness: initThemeCfg.plinthMetalness,
+    });
     const plinthBody = new THREE.Mesh(plinthBodyGeo, plinthMat);
     plinthBody.position.y = -0.2;
     plinthBody.castShadow = true;
@@ -143,7 +236,11 @@ export const Turntable3D: React.FC<Turntable3DProps> = ({
     plinthGroup.add(plinthBody);
 
     const topPlateGeo = new THREE.BoxGeometry(3.86, 0.07, 3.01);
-    const topPlateMat = new THREE.MeshStandardMaterial({ color: 0xb8bcc8, roughness: 0.12, metalness: 0.97 });
+    const topPlateMat = new THREE.MeshStandardMaterial({
+      color: initThemeCfg.topPlateColor,
+      roughness: initThemeCfg.topPlateRoughness,
+      metalness: initThemeCfg.topPlateMetalness,
+    });
     const topPlate = new THREE.Mesh(topPlateGeo, topPlateMat);
     topPlate.position.y = 0.025;
     topPlate.castShadow = true;
@@ -185,10 +282,15 @@ export const Turntable3D: React.FC<Turntable3DProps> = ({
     }
 
     const feltGeo = new THREE.CylinderGeometry(1.26, 1.26, 0.018, 72);
-    const feltMat = new THREE.MeshStandardMaterial({ color: 0x14121a, roughness: 0.96 });
+    const feltMat = new THREE.MeshStandardMaterial({
+      color: initThemeCfg.feltColor,
+      roughness: 0.96,
+    });
     const felt = new THREE.Mesh(feltGeo, feltMat);
     felt.position.y = 0.054;
     platterGroup.add(felt);
+
+    themeMatsRef.current = { plinth: plinthMat, topPlate: topPlateMat, felt: feltMat };
 
     const spindle = new THREE.Mesh(
       new THREE.CylinderGeometry(0.02, 0.02, 0.34, 16),
@@ -589,13 +691,15 @@ export const Turntable3D: React.FC<Turntable3DProps> = ({
         faderCap.position.z = 0.32 - (stateRef.current.pitch / 8.0) * 0.3;
       }
 
+      const curTheme = THEME_CONFIGS[themeRef.current || 'obsidian'];
+
       if (stateRef.current.isPlaying) {
         pulseLight.intensity = 1.5 + Math.sin(elapsed * 5.8) * 0.42;
-        pulseLight.color.setHex(0xffaa44);
+        pulseLight.color.setHex(curTheme.pulseColorPlaying);
         (statusLed.material as THREE.MeshBasicMaterial).color.setHex(0x00ff88);
       } else {
         pulseLight.intensity = 0.55 + Math.sin(elapsed * 1.4) * 0.18;
-        pulseLight.color.setHex(0xff7722);
+        pulseLight.color.setHex(curTheme.pulseColorStandby);
         const br = Math.floor(128 + Math.sin(elapsed * 2.4) * 58);
         (statusLed.material as THREE.MeshBasicMaterial).color.setRGB(1.0, br / 255, 0.0);
       }
