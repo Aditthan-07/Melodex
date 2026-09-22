@@ -2,17 +2,47 @@ import React, { useState, useEffect, useRef } from 'react';
 import {
   Play, Pause, SkipForward, SkipBack, Shuffle, Repeat,
   Volume2, VolumeX, Search, FolderOpen, Upload, Disc,
-  Music, Sparkles, Zap, Sliders,
+  Music, Sparkles, Zap, Sliders, Keyboard,
 } from 'lucide-react';
 import { Track, TurntableSettings, PlaybackState } from './types';
 import { audioEngine } from './utils/audioEngine';
 import { Turntable3D } from './components/Turntable3D';
 import { AudioVisualizer } from './components/AudioVisualizer';
 import { EqualizerModal } from './components/EqualizerModal';
+import { ShortcutsModal } from './components/ShortcutsModal';
 import { generateDemoTracks } from './utils/demoGenerator';
 
 const getRandomIndex = (length: number): number => {
   return Math.floor(Math.random() * length);
+};
+
+const loadSavedSettings = (): TurntableSettings => {
+  try {
+    const raw = localStorage.getItem('melodex_settings');
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      return {
+        pitch: 0.0,
+        speed: parsed.speed === 45 ? 45 : 33,
+        cueingLeverUp: true,
+        crackleVolume: typeof parsed.crackleVolume === 'number' ? parsed.crackleVolume : 0.42,
+        isGrabbingHeadshell: false,
+        theme: ['obsidian', 'walnut', 'silver', 'neon'].includes(parsed.theme) ? parsed.theme : 'obsidian',
+        eq: parsed.eq || { bass: 0, mid: 0, treble: 0 },
+      };
+    }
+  } catch (err) {
+    console.debug('Failed to load saved settings:', err);
+  }
+  return {
+    pitch: 0.0,
+    speed: 33,
+    cueingLeverUp: true,
+    crackleVolume: 0.42,
+    isGrabbingHeadshell: false,
+    theme: 'obsidian',
+    eq: { bass: 0, mid: 0, treble: 0 },
+  };
 };
 
 export default function App() {
@@ -23,16 +53,17 @@ export default function App() {
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [isEQOpen, setIsEQOpen] = useState(false);
-  const [settings, setSettings] = useState<TurntableSettings>({
-    pitch: 0.0,
-    speed: 33,
-    cueingLeverUp: true,
-    crackleVolume: 0.42,
-    isGrabbingHeadshell: false,
-    theme: 'obsidian',
-    eq: { bass: 0, mid: 0, treble: 0 },
+  const [isShortcutsOpen, setIsShortcutsOpen] = useState(false);
+  const [isDraggingOver, setIsDraggingOver] = useState(false);
+  const [settings, setSettings] = useState<TurntableSettings>(loadSavedSettings);
+  const [volume, setVolume] = useState(() => {
+    try {
+      const v = localStorage.getItem('melodex_volume');
+      return v !== null ? parseFloat(v) : 0.8;
+    } catch {
+      return 0.8;
+    }
   });
-  const [volume, setVolume] = useState(0.8);
   const [isMuted, setIsMuted] = useState(false);
   const [isShuffled, setIsShuffled] = useState(false);
   const [isRepeat, setIsRepeat] = useState(false);
@@ -117,6 +148,110 @@ export default function App() {
       : (activeTrackIndex - 1 + tracks.length) % tracks.length;
     selectAndPlayTrack(prev);
   };
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('melodex_settings', JSON.stringify({
+        speed: settings.speed,
+        crackleVolume: settings.crackleVolume,
+        theme: settings.theme,
+        eq: settings.eq,
+      }));
+    } catch (err) {
+      console.debug('Failed to save settings:', err);
+    }
+  }, [settings.speed, settings.crackleVolume, settings.theme, settings.eq]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('melodex_volume', volume.toString());
+    } catch (err) {
+      console.debug('Failed to save volume:', err);
+    }
+  }, [volume]);
+
+  const actionsRef = useRef({ handlePlay, handlePause, activeTrack, playbackState });
+  useEffect(() => {
+    actionsRef.current = { handlePlay, handlePause, activeTrack, playbackState };
+  });
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA')) {
+        return;
+      }
+
+      if (e.code === 'Space') {
+        e.preventDefault();
+        if (actionsRef.current.playbackState === 'playing') {
+          actionsRef.current.handlePause();
+        } else {
+          actionsRef.current.handlePlay();
+        }
+      } else if (e.code === 'ArrowLeft') {
+        e.preventDefault();
+        const cur = audioEngine.getCurrentTime();
+        const dur = audioEngine.getDuration();
+        if (dur > 0) {
+          const targetPct = Math.max(0, ((cur - 5) / dur) * 100);
+          audioEngine.seek(targetPct);
+        }
+      } else if (e.code === 'ArrowRight') {
+        e.preventDefault();
+        const cur = audioEngine.getCurrentTime();
+        const dur = audioEngine.getDuration();
+        if (dur > 0) {
+          const targetPct = Math.min(100, ((cur + 5) / dur) * 100);
+          audioEngine.seek(targetPct);
+        }
+      } else if (e.code === 'ArrowUp') {
+        e.preventDefault();
+        setVolume(v => Math.min(1, parseFloat((v + 0.05).toFixed(2))));
+        setIsMuted(false);
+      } else if (e.code === 'ArrowDown') {
+        e.preventDefault();
+        setVolume(v => Math.max(0, parseFloat((v - 0.05).toFixed(2))));
+      } else if (e.key === 'm' || e.key === 'M') {
+        e.preventDefault();
+        setIsMuted(m => !m);
+      } else if (e.key === 'c' || e.key === 'C') {
+        e.preventDefault();
+        setSettings(s => {
+          const nextUp = !s.cueingLeverUp;
+          if (nextUp) {
+            setPlaybackState('paused');
+            audioEngine.pause();
+          } else if (actionsRef.current.activeTrack) {
+            setPlaybackState('playing');
+            audioEngine.play();
+          }
+          return { ...s, cueingLeverUp: nextUp };
+        });
+      } else if (e.key === '3') {
+        e.preventDefault();
+        setSettings(s => ({ ...s, speed: 33 }));
+      } else if (e.key === '4') {
+        e.preventDefault();
+        setSettings(s => ({ ...s, speed: 45 }));
+      } else if (e.key === 's' || e.key === 'S') {
+        e.preventDefault();
+        setIsShuffled(sh => !sh);
+      } else if (e.key === 'r' || e.key === 'R') {
+        e.preventDefault();
+        setIsRepeat(rp => !rp);
+      } else if (e.key === 'e' || e.key === 'E') {
+        e.preventDefault();
+        setIsEQOpen(o => !o);
+      } else if (e.key === '?') {
+        e.preventDefault();
+        setIsShortcutsOpen(o => !o);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   const handleSettingsFrom3D = (incoming: Partial<TurntableSettings & { isPlaying?: boolean; speedMode?: 33 | 45 }>) => {
     setSettings(prev => {
@@ -220,6 +355,47 @@ export default function App() {
     }, 450);
   };
 
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDraggingOver(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDraggingOver(false);
+  };
+
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDraggingOver(false);
+    const files = e.dataTransfer.files;
+    if (!files?.length) return;
+    const loaded: Track[] = [];
+    for (let i = 0; i < files.length; i++) {
+      const f = files[i];
+      const ext = f.name.substring(f.name.lastIndexOf('.')).toLowerCase();
+      if (AUDIO_EXTS.includes(ext) || f.type.startsWith('audio/')) {
+        loaded.push(buildTrack(f, tracks.length + loaded.length, 'Dropped Vinyl'));
+      }
+    }
+    if (loaded.length) {
+      const updated = [...tracks, ...loaded];
+      setTracks(updated);
+      if (playbackState !== 'playing') {
+        const startIdx = tracks.length;
+        setActiveTrackIndex(startIdx);
+        setCurrentTime(0);
+        setDuration(0);
+        await audioEngine.setTrack(updated[startIdx]);
+        setTimeout(() => {
+          setSettings(p => ({ ...p, cueingLeverUp: false }));
+          setPlaybackState('playing');
+          audioEngine.play();
+        }, 450);
+      }
+    }
+  };
+
   const fmt = (s: number) => {
     if (!s || isNaN(s) || !isFinite(s)) return '0:00';
     return `${Math.floor(s / 60)}:${Math.floor(s % 60).toString().padStart(2, '0')}`;
@@ -235,7 +411,12 @@ export default function App() {
   const trackColors = ['from-violet-900/70','from-emerald-900/70','from-amber-900/70','from-rose-900/70','from-sky-900/70','from-fuchsia-900/70'];
 
   return (
-    <div className="w-full h-screen overflow-hidden bg-gradient-to-b from-[#090809] via-[#050507] to-[#020103] font-sans antialiased text-[#e0dbd5] flex flex-col items-center justify-between p-4 md:p-5 select-none">
+    <div
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+      className="relative w-full h-screen overflow-hidden bg-gradient-to-b from-[#090809] via-[#050507] to-[#020103] font-sans antialiased text-[#e0dbd5] flex flex-col items-center justify-between p-4 md:p-5 select-none"
+    >
       <input
         ref={folderInputRef}
         type="file"
@@ -244,6 +425,16 @@ export default function App() {
         {...({ webkitdirectory: '', directory: '' } as React.InputHTMLAttributes<HTMLInputElement>)}
       />
       <input ref={fileInputRef} type="file" multiple accept="audio/*" className="hidden" onChange={handleFilesPick} />
+
+      {isDraggingOver && (
+        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/85 backdrop-blur-md border-4 border-dashed border-amber-500/70 m-4 rounded-3xl animate-fade-in pointer-events-none">
+          <div className="w-20 h-20 rounded-full bg-amber-500/10 border border-amber-500/30 flex items-center justify-center mb-4 animate-pulse">
+            <Disc className="w-10 h-10 text-amber-400 animate-spin" style={{ animationDuration: '3s' }} />
+          </div>
+          <h2 className="text-xl font-serif font-bold text-zinc-100 tracking-wide">Drop Audio Files to Spin</h2>
+          <p className="text-xs text-amber-400/80 font-mono mt-2">Supports MP3, WAV, FLAC, M4A, OGG, AAC, OPUS</p>
+        </div>
+      )}
 
       <div className="w-full max-w-6xl flex justify-between items-center py-2 border-b border-zinc-950/80 flex-shrink-0">
         <div>
@@ -272,6 +463,14 @@ export default function App() {
               </button>
             ))}
           </div>
+
+          <button
+            onClick={() => setIsShortcutsOpen(true)}
+            title="Keyboard Shortcuts (?)"
+            className="p-1.5 rounded-lg bg-zinc-950 hover:bg-zinc-900 border border-zinc-900 hover:border-zinc-800 text-zinc-400 hover:text-amber-400 transition-colors cursor-pointer"
+          >
+            <Keyboard className="w-3.5 h-3.5" />
+          </button>
 
           {tracks.length > 0 && (
             <div className="flex items-center gap-2">
@@ -502,6 +701,11 @@ export default function App() {
         onClose={() => setIsEQOpen(false)}
         eq={settings.eq}
         onChange={(newEQ) => setSettings((s) => ({ ...s, eq: newEQ }))}
+      />
+
+      <ShortcutsModal
+        isOpen={isShortcutsOpen}
+        onClose={() => setIsShortcutsOpen(false)}
       />
     </div>
   );
