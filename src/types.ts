@@ -6,9 +6,18 @@ export interface Track {
   duration: number;
   url?: string;
   file?: File;
+  isDemo?: boolean;
 }
 
 export type PlaybackState = 'stopped' | 'playing' | 'paused';
+
+export type TurntableTheme = 'obsidian' | 'walnut' | 'silver' | 'neon';
+
+export interface EQSettings {
+  bass: number;    // -12 to +12 dB
+  mid: number;     // -12 to +12 dB
+  treble: number;  // -12 to +12 dB
+}
 
 export interface TurntableSettings {
   pitch: number;
@@ -16,4 +25,8 @@ export interface TurntableSettings {
   cueingLeverUp: boolean;
   crackleVolume: number;
   isGrabbingHeadshell: boolean;
+  theme: TurntableTheme;
+  eq: EQSettings;
 }
+
+export type VisualizerMode = 'spectrum' | 'vu';

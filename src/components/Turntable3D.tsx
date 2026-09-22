@@ -34,6 +34,11 @@ export const Turntable3D: React.FC<Turntable3DProps> = ({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [hoveredPart, setHoveredPart] = useState<string | null>(null);
 
+  const callbacksRef = useRef({ onNeedleDrop, onNeedleLift, onSettingsChange });
+  useEffect(() => {
+    callbacksRef.current = { onNeedleDrop, onNeedleLift, onSettingsChange };
+  }, [onNeedleDrop, onNeedleLift, onSettingsChange]);
+
   const stateRef = useRef({
     isPlaying,
     currentTime,
@@ -448,23 +453,23 @@ export const Turntable3D: React.FC<Turntable3DProps> = ({
       if (hits.find(h => h.object.name === 'headshell_interactive')) {
         controls.enabled = false;
         stateRef.current.isGrabbing = true;
-        onSettingsChange({ isGrabbingHeadshell: true });
+        callbacksRef.current.onSettingsChange({ isGrabbingHeadshell: true });
         return;
       }
       if (hits.find(h => h.object.name === 'cue_lever_interactive')) {
-        onSettingsChange({ cueingLeverUp: !stateRef.current.cueingLeverUp });
+        callbacksRef.current.onSettingsChange({ cueingLeverUp: !stateRef.current.cueingLeverUp });
         return;
       }
       if (hits.find(h => h.object.name === 'start_stop_button_interactive')) {
         ssBtn.position.y = 0.048;
         setTimeout(() => { ssBtn.position.y = 0.07; }, 110);
-        onSettingsChange({ isPlaying: !stateRef.current.isPlaying });
+        callbacksRef.current.onSettingsChange({ isPlaying: !stateRef.current.isPlaying });
         return;
       }
       if (hits.find(h => h.object.name === 'speed_mode_button_interactive')) {
         spBtn.position.y = 0.046;
         setTimeout(() => { spBtn.position.y = 0.07; }, 110);
-        onSettingsChange({ speedMode: stateRef.current.speedMode === 33 ? 45 : 33 });
+        callbacksRef.current.onSettingsChange({ speedMode: stateRef.current.speedMode === 33 ? 45 : 33 });
         return;
       }
       if (hits.find(h => h.object.name === 'pitch_fader_cap')) {
@@ -501,7 +506,7 @@ export const Turntable3D: React.FC<Turntable3DProps> = ({
           localZ = Math.max(-0.3, Math.min(0.3, localZ));
           faderCap.position.z = 0.32 + localZ;
           const pitchVal = -(localZ / 0.3) * 8.0;
-          onSettingsChange({ pitch: parseFloat(pitchVal.toFixed(2)) });
+          callbacksRef.current.onSettingsChange({ pitch: parseFloat(pitchVal.toFixed(2)) });
         }
         return;
       }
@@ -519,17 +524,17 @@ export const Turntable3D: React.FC<Turntable3DProps> = ({
 
       if (stateRef.current.isGrabbing) {
         stateRef.current.isGrabbing = false;
-        onSettingsChange({ isGrabbingHeadshell: false });
+        callbacksRef.current.onSettingsChange({ isGrabbingHeadshell: false });
 
         const angle = stateRef.current.currentArmYRot;
         const { angleLeadIn, angleLeadOut } = stateRef.current;
 
         if (angle >= angleLeadOut && angle <= angleLeadIn) {
           const progress = (angleLeadIn - angle) / (angleLeadIn - angleLeadOut);
-          onNeedleDrop(progress);
+          callbacksRef.current.onNeedleDrop(progress);
         } else {
           stateRef.current.targetArmYRot = stateRef.current.angleRest;
-          onNeedleLift();
+          callbacksRef.current.onNeedleLift();
         }
       }
     };

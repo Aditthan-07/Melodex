@@ -8,6 +8,10 @@ import { Track, TurntableSettings, PlaybackState } from './types';
 import { audioEngine } from './utils/audioEngine';
 import { Turntable3D } from './components/Turntable3D';
 
+const getRandomIndex = (length: number): number => {
+  return Math.floor(Math.random() * length);
+};
+
 export default function App() {
   const [tracks, setTracks] = useState<Track[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -16,8 +20,13 @@ export default function App() {
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [settings, setSettings] = useState<TurntableSettings>({
-    pitch: 0.0, speed: 33, cueingLeverUp: true,
-    crackleVolume: 0.42, isGrabbingHeadshell: false,
+    pitch: 0.0,
+    speed: 33,
+    cueingLeverUp: true,
+    crackleVolume: 0.42,
+    isGrabbingHeadshell: false,
+    theme: 'obsidian',
+    eq: { bass: 0, mid: 0, treble: 0 },
   });
   const [volume, setVolume] = useState(0.8);
   const [isMuted, setIsMuted] = useState(false);
@@ -34,16 +43,18 @@ export default function App() {
     audioEngine.setPitch(settings.pitch);
     audioEngine.setSpeedMode(settings.speed);
   }, [settings.pitch, settings.speed]);
+  useEffect(() => {
+    audioEngine.setEQ(settings.eq);
+  }, [settings.eq]);
+
+  const handleNextTrackRef = useRef<() => void>(() => {});
 
   useEffect(() => {
-    audioEngine.setVolume(volume);
-    audioEngine.setCrackleVolume(settings.crackleVolume);
     audioEngine.onTimeUpdate = (cur, tot) => {
       setCurrentTime(cur);
       if (tot && isFinite(tot)) setDuration(tot);
     };
-    audioEngine.onEnded = () => handleNextTrack();
-    if (activeTrack) audioEngine.setTrack(activeTrack);
+    audioEngine.onEnded = () => handleNextTrackRef.current();
   }, []);
 
   const handlePlay = () => {
@@ -69,22 +80,6 @@ export default function App() {
 
   const handleNeedleLift = () => handlePause();
 
-  const handleNextTrack = () => {
-    if (isRepeat) { audioEngine.seek(0); audioEngine.play(); return; }
-    const next = isShuffled
-      ? Math.floor(Math.random() * tracks.length)
-      : (activeTrackIndex + 1) % tracks.length;
-    selectAndPlayTrack(next);
-  };
-
-  const handlePrevTrack = () => {
-    if (currentTime > 4) { audioEngine.seek(0); return; }
-    const prev = isShuffled
-      ? Math.floor(Math.random() * tracks.length)
-      : (activeTrackIndex - 1 + tracks.length) % tracks.length;
-    selectAndPlayTrack(prev);
-  };
-
   const selectAndPlayTrack = async (index: number) => {
     if (index < 0 || index >= tracks.length) return;
     setActiveTrackIndex(index);
@@ -99,16 +94,51 @@ export default function App() {
     }, 460);
   };
 
+  const handleNextTrack = () => {
+    if (isRepeat) { audioEngine.seek(0); audioEngine.play(); return; }
+    const next = isShuffled
+      ? getRandomIndex(tracks.length)
+      : (activeTrackIndex + 1) % tracks.length;
+    selectAndPlayTrack(next);
+  };
+
+  useEffect(() => {
+    handleNextTrackRef.current = handleNextTrack;
+  });
+
+  const handlePrevTrack = () => {
+    if (currentTime > 4) { audioEngine.seek(0); return; }
+    const prev = isShuffled
+      ? getRandomIndex(tracks.length)
+      : (activeTrackIndex - 1 + tracks.length) % tracks.length;
+    selectAndPlayTrack(prev);
+  };
+
   const handleSettingsFrom3D = (incoming: Partial<TurntableSettings & { isPlaying?: boolean; speedMode?: 33 | 45 }>) => {
     setSettings(prev => {
-      const merged = { ...prev, ...incoming } as TurntableSettings;
-      if ('speedMode' in incoming) { merged.speed = (incoming as any).speedMode; audioEngine.setSpeedMode(merged.speed); }
-      if ('isPlaying' in incoming) {
-        if (incoming.isPlaying) { merged.cueingLeverUp = false; setPlaybackState('playing'); audioEngine.play(); }
-        else { merged.cueingLeverUp = true; setPlaybackState('paused'); audioEngine.pause(); }
-      } else if ('cueingLeverUp' in incoming) {
-        if (incoming.cueingLeverUp) { setPlaybackState('paused'); audioEngine.pause(); }
-        else { setPlaybackState('playing'); audioEngine.play(); }
+      const merged: TurntableSettings = { ...prev, ...incoming };
+      if (incoming.speedMode !== undefined) {
+        merged.speed = incoming.speedMode;
+        audioEngine.setSpeedMode(merged.speed);
+      }
+      if (incoming.isPlaying !== undefined) {
+        if (incoming.isPlaying) {
+          merged.cueingLeverUp = false;
+          setPlaybackState('playing');
+          audioEngine.play();
+        } else {
+          merged.cueingLeverUp = true;
+          setPlaybackState('paused');
+          audioEngine.pause();
+        }
+      } else if (incoming.cueingLeverUp !== undefined) {
+        if (incoming.cueingLeverUp) {
+          setPlaybackState('paused');
+          audioEngine.pause();
+        } else {
+          setPlaybackState('playing');
+          audioEngine.play();
+        }
       }
       return merged;
     });
@@ -125,7 +155,10 @@ export default function App() {
   const handleOpenFolder = async () => {
     if (!('showDirectoryPicker' in window)) { folderInputRef.current?.click(); return; }
     try {
-      const dir = await (window as any).showDirectoryPicker({ mode: 'read' });
+      const pickerWindow = window as unknown as {
+        showDirectoryPicker: (options?: { mode?: string }) => Promise<FileSystemDirectoryHandle>;
+      };
+      const dir = await pickerWindow.showDirectoryPicker({ mode: 'read' });
       const loaded: Track[] = [];
       for await (const entry of dir.values()) {
         if (entry.kind === 'file') {
@@ -185,8 +218,13 @@ export default function App() {
 
   return (
     <div className="w-full h-screen overflow-hidden bg-gradient-to-b from-[#090809] via-[#050507] to-[#020103] font-sans antialiased text-[#e0dbd5] flex flex-col items-center justify-between p-4 md:p-5 select-none">
-      <input ref={folderInputRef} type="file" className="hidden" onChange={handleFolderFallback}
-        {...{ webkitdirectory: 'true', directory: 'true' } as any} />
+      <input
+        ref={folderInputRef}
+        type="file"
+        className="hidden"
+        onChange={handleFolderFallback}
+        {...({ webkitdirectory: '', directory: '' } as React.InputHTMLAttributes<HTMLInputElement>)}
+      />
       <input ref={fileInputRef} type="file" multiple accept="audio/*" className="hidden" onChange={handleFilesPick} />
 
       <div className="w-full max-w-6xl flex justify-between items-center py-2 border-b border-zinc-950/80 flex-shrink-0">
