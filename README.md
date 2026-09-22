@@ -6,7 +6,7 @@
 
 *A richly-detailed, physically-simulated turntable rendered entirely in the browser.*
 
-[![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=white)](https://react.dev/)
+[![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white)](https://react.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Vite](https://img.shields.io/badge/Vite-Build-646CFF?logo=vite&logoColor=white)](https://vitejs.dev/)
 [![Three.js](https://img.shields.io/badge/Three.js-r184-000000?logo=three.js&logoColor=white)](https://threejs.org/)
@@ -19,21 +19,16 @@
 
 ## Overview
 
-**Melodex** is a browser-based music player that recreates the experience of a physical vinyl turntable in interactive 3D. Built with **React**, **TypeScript**, and **Three.js**, it lets you load your own local audio library and play it through a turntable you can actually touch — drag the tonearm, flip the cueing lever, ride the pitch fader, and hear authentic vinyl crackle, all simulated client-side with the Web Audio API.
+**Melodex** is a browser-based music player that recreates the experience of a physical vinyl turntable in interactive 3D. Built with **React**, **TypeScript**, and **Three.js**, it lets you load your own local audio library and play it through a turntable you can actually touch — drag the tonearm, flip the cueing lever, ride the pitch fader, monitor analog VU meters, tweak a 3-band parametric EQ, and hear authentic vinyl crackle, all simulated client-side with the Web Audio API.
 
-No servers. No uploads. No preloaded samples — Melodex only plays audio you load from your own machine.
-
-<!--
-## Preview
-
-![Melodex Screenshot](./docs/screenshot.png)
--->
+No servers. No uploads. Fully client-side and privacy-first. If you don't have local audio on hand, use the built-in **procedural Lo-Fi Jazz demo vinyl** to start spinning right away!
 
 ---
 
 ## Table of Contents
 
 - [Features](#features)
+- [Keyboard Shortcuts](#keyboard-shortcuts)
 - [Tech Stack](#tech-stack)
 - [Getting Started](#getting-started)
 - [Build for Production](#build-for-production)
@@ -51,16 +46,38 @@ No servers. No uploads. No preloaded samples — Melodex only plays audio you lo
 | Category | Details |
 |---|---|
 | 🎛️ **Interactive 3D Turntable** | Platter, S-curve tonearm, headshell, vinyl record with groove texture, cueing lever, pitch fader, and start/stop buttons |
+| 🎨 **Turntable Themes** | Switch between 4 custom finishes: **Classic Obsidian**, **Walnut Wood**, **Silver Technics**, and **Midnight Neon** |
+| 📊 **Real-Time Visualizer** | Dual vintage analog stereo **VU meters** with peak LEDs and switchable **32-band real-time audio spectrum analyzer** |
+| 🎚️ **3-Band Parametric EQ** | Web Audio Biquad filters for **Bass (100Hz)**, **Mid (1kHz)**, and **Treble (8kHz)** with curve response and acoustic presets |
+| 🎷 **Procedural Vinyl Demos** | In-browser lo-fi jazz synthesis ("Midnight Groove" & "Analog Nostalgia") generates authentic WAV vinyl records on demand |
 | 🖱️ **Tonearm Dragging** | Physically grab and reposition the headshell to cue any point in the song |
 | 🪛 **Cueing Lever** | Click the 3D lever to drop or lift the stylus needle |
-| ⏯️ **Deck Controls** | Click directly on the 3D deck to toggle playback or switch between 33⅓ / 45 RPM |
-| 🎚️ **Pitch Fader** | Drag the plinth slider to pitch-shift playback ±8% |
+| 📥 **Drag & Drop Loading** | Drop audio files from your desktop directly onto the turntable window |
+| ⌨️ **Keyboard Shortcut Suite** | Full physical deck control via `Space`, `Arrow` keys, `M`, `C`, `3/4`, `S`, `R`, `E`, and `?` |
 | 📻 **Vinyl Crackle** | Atmospheric surface noise via the Web Audio API, fully adjustable |
-| ⚙️ **Motor Inertia** | Platter realistically accelerates and decelerates; pitch drops as the motor slows |
+| ⚙️ **Motor Inertia** | Platter realistically accelerates and decelerates; pitch drops naturally as the motor slows |
 | 📂 **Local Folder Loading** | Native `showDirectoryPicker` API with a `webkitdirectory` fallback for all browsers |
-| 🔍 **Searchable Shelf** | Filter your loaded library by title or artist in real time |
-| 🎵 **Full Playback Controls** | Play/pause, skip, shuffle, repeat, volume, mute, and progress seeking |
-| 🔒 **Privacy-First** | No preloaded samples, no server, no audio leaves your device |
+| 🔍 **Searchable Shelf** | Filter your loaded library by title, artist, or album in real time |
+| 💾 **Settings Persistence** | Saves your preferred theme, volume, crackle level, speed, and EQ profile in `localStorage` |
+
+---
+
+## Keyboard Shortcuts
+
+Press <kbd>?</kbd> anywhere in the app to display the interactive shortcuts sheet.
+
+| Shortcut | Action |
+|---|---|
+| <kbd>Space</kbd> | Toggle motor and audio play / pause |
+| <kbd>←</kbd> / <kbd>→</kbd> | Seek backward / forward 5 seconds |
+| <kbd>↑</kbd> / <kbd>↓</kbd> | Adjust volume up / down (5%) |
+| <kbd>M</kbd> | Toggle mute / unmute |
+| <kbd>C</kbd> | Toggle tonearm cueing lever (drop / lift needle) |
+| <kbd>3</kbd> / <kbd>4</kbd> | Switch speed mode (33⅓ RPM / 45 RPM) |
+| <kbd>S</kbd> | Toggle shuffle playback |
+| <kbd>R</kbd> | Toggle repeat track |
+| <kbd>E</kbd> | Open / close Tone Equalizer panel |
+| <kbd>?</kbd> | Toggle Keyboard Shortcuts help modal |
 
 ---
 
@@ -68,10 +85,10 @@ No servers. No uploads. No preloaded samples — Melodex only plays audio you lo
 
 | Layer | Technology |
 |---|---|
-| Framework | React 18 + TypeScript |
+| Framework | React 19 + TypeScript |
 | Build Tool | Vite |
 | 3D Rendering | Three.js r184 + OrbitControls |
-| Audio Engine | Web Audio API + HTML `<audio>` element |
+| Audio Engine | Web Audio API + HTML `<audio>` element (`BiquadFilterNode`, `AnalyserNode`, `ScriptProcessorNode`) |
 | Styling | Tailwind CSS v3 |
 | Icons | Lucide React |
 | Fonts | Playfair Display, Inter, JetBrains Mono |
@@ -88,8 +105,8 @@ No servers. No uploads. No preloaded samples — Melodex only plays audio you lo
 ### Installation
 
 ```bash
-git clone https://github.com/<your-username>/melodex.git
-cd melodex
+git clone https://github.com/Aditthan-07/Melodex.git
+cd Melodex
 npm install
 npm run dev
 ```
@@ -105,7 +122,7 @@ npm run build
 npm run preview
 ```
 
-The optimized production build is written to the `dist/` directory.
+The optimized production build is compiled to the `dist/` directory.
 
 ---
 
@@ -113,13 +130,14 @@ The optimized production build is written to the `dist/` directory.
 
 ### Loading Music
 
-**Open Local Music Folder** *(recommended)*
-Click **"Open Local Music Folder"** on the empty shelf panel. Your browser will prompt you to select a folder — all supported audio files inside (`mp3`, `wav`, `flac`, `m4a`, `ogg`, `aac`, `opus`) load into the shelf automatically.
-
-> On Firefox and Safari, a fallback file picker opens instead — simply select all files within the folder manually.
-
-**Choose Individual Files**
-Click **"Choose Audio Files"** to select one or more audio files directly via the standard file dialog.
+1. **Spin Demo Vinyl (Lo-Fi Jazz)**
+   Click **"Spin Demo Vinyl (Lo-Fi Jazz)"** on the empty shelf panel to instantly synthesize vintage lo-fi records directly in your browser.
+2. **Open Local Music Folder** *(recommended)*
+   Click **"Open Local Music Folder"** to select a music directory. Melodex parses all supported audio formats (`mp3`, `wav`, `flac`, `m4a`, `ogg`, `aac`, `opus`) automatically.
+3. **Drag & Drop**
+   Drag audio files from your desktop or file manager and drop them anywhere onto the player deck.
+4. **Choose Individual Files**
+   Click **"Choose Audio Files"** to pick specific audio tracks using your system dialog.
 
 ### Turntable Controls
 
@@ -132,19 +150,6 @@ Click **"Choose Audio Files"** to select one or more audio files directly via th
 | Drag the pitch fader | Adjust playback speed ±8% |
 | Scroll / drag the scene | Orbit the 3D camera |
 
-### Playback Bar
-
-| Control | Function |
-|---|---|
-| ▶️ Play / Pause | Central amber button |
-| ⏮ ⏭ Skip | Jump to previous or next track |
-| 🔀 🔁 Shuffle / Repeat | Toggle icons flanking the skip buttons |
-| ▬ Progress Bar | Click anywhere to seek |
-| 🔊 Volume | Slider with mute toggle |
-| 🎚️ RPM | Quick toggle between 33 and 45 |
-| 📻 Crackle | Adjust vinyl surface noise intensity |
-| 🎵 Pitch | Fine ±8% pitch adjustment (mirrors the 3D fader) |
-
 ---
 
 ## Project Structure
@@ -153,14 +158,18 @@ Click **"Choose Audio Files"** to select one or more audio files directly via th
 melodex/
 ├── src/
 │   ├── components/
-│   │   └── Turntable3D.tsx   # Three.js scene, orbit controls, interactivity
+│   │   ├── Turntable3D.tsx       # Three.js 3D turntable scene & interactive meshes
+│   │   ├── AudioVisualizer.tsx   # Real-time stereo VU meter & spectrum analyzer
+│   │   ├── EqualizerModal.tsx    # 3-band parametric EQ panel & tone presets
+│   │   └── ShortcutsModal.tsx    # Keyboard shortcuts reference overlay
 │   ├── utils/
-│   │   └── audioEngine.ts    # Web Audio API engine (crackle, pitch, motor)
-│   ├── App.tsx                # Main layout, state, file loading
-│   ├── types.ts                # Shared TypeScript interfaces
-│   ├── index.css               # Tailwind + custom animations
-│   ├── main.tsx                 # React entry point
-│   └── vite-env.d.ts            # Vite type declarations
+│   │   ├── audioEngine.ts        # Web Audio graph (EQ, analyser, crackle, pitch)
+│   │   └── demoGenerator.ts      # Procedural lo-fi jazz vinyl synthesis engine
+│   ├── App.tsx                    # Main layout, drag-drop, hotkeys, state management
+│   ├── types.ts                   # Shared TypeScript interfaces & models
+│   ├── index.css                  # Tailwind + custom animations
+│   ├── main.tsx                   # React entry point
+│   └── vite-env.d.ts              # Vite type declarations
 ├── public/
 ├── index.html
 ├── vite.config.ts
@@ -174,23 +183,24 @@ melodex/
 
 ## Browser Compatibility
 
-| Browser | Folder Picker | Audio Support |
-|---|---|---|
-| Chrome / Edge 86+ | Native `showDirectoryPicker` | ✅ Full |
-| Firefox | Fallback `webkitdirectory` | ✅ Full |
-| Safari 15.2+ | Fallback `webkitdirectory` | ✅ Full |
+| Browser | Folder Picker | Web Audio & 3D | Drag & Drop |
+|---|---|---|---|
+| Chrome / Edge 86+ | Native `showDirectoryPicker` | ✅ Full | ✅ Full |
+| Firefox | Fallback `webkitdirectory` | ✅ Full | ✅ Full |
+| Safari 15.2+ | Fallback `webkitdirectory` | ✅ Full | ✅ Full |
 
 ---
 
 ## Roadmap
 
-- [ ] Album art extraction from audio metadata
-- [ ] Persistent library across sessions (IndexedDB)
-- [ ] Custom skins / turntable color themes
-- [ ] Equalizer panel
-- [ ] Crossfade between tracks
-
-> Have an idea? Open an [issue](../../issues) or submit a pull request.
+- [x] Real-time audio visualizer & analog VU meter
+- [x] 3-band parametric equalizer panel & presets
+- [x] Custom turntable finishes (Obsidian, Walnut, Silver, Neon)
+- [x] Procedural vintage vinyl demo synthesis
+- [x] Viewport drag-and-drop audio loading
+- [x] Keyboard shortcut navigation suite
+- [ ] Album art extraction from audio metadata (ID3)
+- [ ] Crossfade between multiple turntables (DJ mode)
 
 ---
 
@@ -208,6 +218,6 @@ Contributions are welcome! To contribute:
 
 <div align="center">
 
-Made with 🎶 and Three.js
+Made with 🎶, Three.js, and the Web Audio API
 
 </div>
