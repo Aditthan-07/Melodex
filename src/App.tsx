@@ -29,6 +29,7 @@ const loadSavedSettings = (): TurntableSettings => {
         isGrabbingHeadshell: false,
         theme: ['obsidian', 'walnut', 'silver', 'neon'].includes(parsed.theme) ? parsed.theme : 'obsidian',
         eq: parsed.eq || { bass: 0, mid: 0, treble: 0 },
+        analogFX: parsed.analogFX || { warmth: 0, flutter: 0 },
       };
     }
   } catch (err) {
@@ -42,6 +43,7 @@ const loadSavedSettings = (): TurntableSettings => {
     isGrabbingHeadshell: false,
     theme: 'obsidian',
     eq: { bass: 0, mid: 0, treble: 0 },
+    analogFX: { warmth: 0, flutter: 0 },
   };
 };
 
@@ -81,6 +83,9 @@ export default function App() {
   useEffect(() => {
     audioEngine.setEQ(settings.eq);
   }, [settings.eq]);
+  useEffect(() => {
+    audioEngine.setAnalogFX(settings.analogFX);
+  }, [settings.analogFX]);
 
   const handleNextTrackRef = useRef<() => void>(() => {});
 
@@ -156,11 +161,12 @@ export default function App() {
         crackleVolume: settings.crackleVolume,
         theme: settings.theme,
         eq: settings.eq,
+        analogFX: settings.analogFX,
       }));
     } catch (err) {
       console.debug('Failed to save settings:', err);
     }
-  }, [settings.speed, settings.crackleVolume, settings.theme, settings.eq]);
+  }, [settings.speed, settings.crackleVolume, settings.theme, settings.eq, settings.analogFX]);
 
   useEffect(() => {
     try {
@@ -683,15 +689,19 @@ export default function App() {
 
           <button
             onClick={() => setIsEQOpen(true)}
-            title="3-Band Parametric Equalizer"
+            title="Audiophile Sound Console (EQ & Analog Warmth)"
             className={`flex items-center gap-1 px-2 py-1 rounded-lg border text-xs font-mono transition-all cursor-pointer ${
-              settings.eq.bass !== 0 || settings.eq.mid !== 0 || settings.eq.treble !== 0
+              settings.eq.bass !== 0 ||
+              settings.eq.mid !== 0 ||
+              settings.eq.treble !== 0 ||
+              settings.analogFX.warmth > 0 ||
+              settings.analogFX.flutter > 0
                 ? 'bg-amber-500/20 border-amber-500/50 text-amber-300 shadow-sm'
                 : 'bg-zinc-900/80 border-zinc-800 text-zinc-400 hover:text-zinc-200 hover:border-zinc-700'
             }`}
           >
             <Sliders className="w-3 h-3" />
-            <span className="text-[10px] hidden sm:inline">EQ</span>
+            <span className="text-[10px] hidden sm:inline">EQ &amp; FX</span>
           </button>
         </div>
       </div>
@@ -701,6 +711,8 @@ export default function App() {
         onClose={() => setIsEQOpen(false)}
         eq={settings.eq}
         onChange={(newEQ) => setSettings((s) => ({ ...s, eq: newEQ }))}
+        analogFX={settings.analogFX}
+        onAnalogFXChange={(newFX) => setSettings((s) => ({ ...s, analogFX: newFX }))}
       />
 
       <ShortcutsModal

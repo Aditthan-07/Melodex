@@ -1,4 +1,4 @@
-import { Track, EQSettings } from '../types';
+import { Track, EQSettings, AnalogFXSettings } from '../types';
 
 class AudioEngine {
   private audioCtx: AudioContext | null = null;
@@ -9,6 +9,12 @@ class AudioEngine {
   private bassFilter: BiquadFilterNode | null = null;
   private midFilter: BiquadFilterNode | null = null;
   private trebleFilter: BiquadFilterNode | null = null;
+  private warmthNode: WaveShaperNode | null = null;
+  private flutterDelay: DelayNode | null = null;
+  private flutterGain: GainNode | null = null;
+  private wowOsc: OscillatorNode | null = null;
+  private flutterOsc: OscillatorNode | null = null;
+  private currentAnalogFX: AnalogFXSettings = { warmth: 0, flutter: 0 };
   private masterGain: GainNode | null = null;
   private analyser: AnalyserNode | null = null;
   private currentTrack: Track | null = null;
@@ -30,6 +36,24 @@ class AudioEngine {
     this.audio.addEventListener('loadedmetadata', () => {
       this.onTimeUpdate?.(0, this.audio.duration || 0);
     });
+  }
+
+  private makeWarmthCurve(amount: number): Float32Array<ArrayBuffer> {
+    const nSamples = 44100;
+    const curve = new Float32Array(nSamples);
+    if (amount <= 0.001) {
+      for (let i = 0; i < nSamples; i++) {
+        curve[i] = (i * 2) / nSamples - 1;
+      }
+      return curve;
+    }
+    const k = amount * 16;
+    const deg = Math.PI / 180;
+    for (let i = 0; i < nSamples; i++) {
+      const x = (i * 2) / nSamples - 1;
+      curve[i] = ((3 + k) * x * 20 * deg) / (Math.PI + k * Math.abs(x));
+    }
+    return curve;
   }
 
   private initAudioContext() {
@@ -56,6 +80,37 @@ class AudioEngine {
     this.trebleFilter.frequency.value = 8000;
     this.trebleFilter.gain.value = 0;
 
+    // Tube saturation (wave shaper)
+    this.warmthNode = this.audioCtx.createWaveShaper();
+    this.warmthNode.curve = this.makeWarmthCurve(this.currentAnalogFX.warmth);
+    this.warmthNode.oversample = '2x';
+
+    // Wow & Flutter (modulated delay line)
+    this.flutterDelay = this.audioCtx.createDelay(0.1);
+    this.flutterDelay.delayTime.value = 0.015;
+
+    this.flutterGain = this.audioCtx.createGain();
+    this.flutterGain.gain.value = this.currentAnalogFX.flutter * 0.0014;
+
+    this.wowOsc = this.audioCtx.createOscillator();
+    this.wowOsc.type = 'sine';
+    this.wowOsc.frequency.value = 0.55; // ~33 RPM rotation drift
+
+    this.flutterOsc = this.audioCtx.createOscillator();
+    this.flutterOsc.type = 'triangle';
+    this.flutterOsc.frequency.value = 5.8; // motor pole vibration
+
+    this.wowOsc.connect(this.flutterGain);
+    this.flutterOsc.connect(this.flutterGain);
+    this.flutterGain.connect(this.flutterDelay.delayTime);
+
+    try {
+      this.wowOsc.start();
+      this.flutterOsc.start();
+    } catch {
+      // Ignored if already started
+    }
+
     // Master gain
     this.masterGain = this.audioCtx.createGain();
     this.masterGain.gain.value = 0.8;
@@ -72,7 +127,9 @@ class AudioEngine {
         this.sourceNode.connect(this.bassFilter);
         this.bassFilter.connect(this.midFilter);
         this.midFilter.connect(this.trebleFilter);
-        this.trebleFilter.connect(this.masterGain);
+        this.trebleFilter.connect(this.warmthNode);
+        this.warmthNode.connect(this.flutterDelay);
+        this.flutterDelay.connect(this.masterGain);
       }
     } catch (e) {
       console.warn('MediaElementAudioSourceNode initialization error:', e);
@@ -133,6 +190,19 @@ class AudioEngine {
     if (this.bassFilter) this.bassFilter.gain.setValueAtTime(eq.bass, t);
     if (this.midFilter) this.midFilter.gain.setValueAtTime(eq.mid, t);
     if (this.trebleFilter) this.trebleFilter.gain.setValueAtTime(eq.treble, t);
+  }
+
+  public setAnalogFX(fx: AnalogFXSettings) {
+    this.currentAnalogFX = fx;
+    if (!this.audioCtx) this.initAudioContext();
+    if (!this.audioCtx) return;
+    if (this.warmthNode) {
+      this.warmthNode.curve = this.makeWarmthCurve(fx.warmth);
+    }
+    if (this.flutterGain) {
+      const t = this.audioCtx.currentTime;
+      this.flutterGain.gain.setValueAtTime(fx.flutter * 0.0014, t);
+    }
   }
 
   public getVisualizerData(freqArray: Uint8Array<ArrayBuffer>, waveArray?: Uint8Array<ArrayBuffer>): void {

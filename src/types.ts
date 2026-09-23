@@ -19,6 +19,11 @@ export interface EQSettings {
   treble: number;  // -12 to +12 dB
 }
 
+export interface AnalogFXSettings {
+  warmth: number;    // 0 to 1 (tube drive / saturation)
+  flutter: number;   // 0 to 1 (wow & flutter)
+}
+
 export interface TurntableSettings {
   pitch: number;
   speed: 33 | 45;
@@ -27,6 +32,7 @@ export interface TurntableSettings {
   isGrabbingHeadshell: boolean;
   theme: TurntableTheme;
   eq: EQSettings;
+  analogFX: AnalogFXSettings;
 }
 
 export type VisualizerMode = 'spectrum' | 'vu';
