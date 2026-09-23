@@ -49,6 +49,11 @@ No servers. No uploads. Fully client-side and privacy-first. If you don't have l
 | 🎨 **Turntable Themes** | Switch between 4 custom finishes: **Classic Obsidian**, **Walnut Wood**, **Silver Technics**, and **Midnight Neon** |
 | 📊 **Real-Time Visualizer** | Dual vintage analog stereo **VU meters** with peak LEDs and switchable **32-band real-time audio spectrum analyzer** |
 | 🎚️ **3-Band Parametric EQ** | Web Audio Biquad filters for **Bass (100Hz)**, **Mid (1kHz)**, and **Treble (8kHz)** with curve response and acoustic presets |
+| 🔥 **Analog Warmth & Drive** | Soft-clipping tube saturation (`WaveShaperNode`) and authentic Wow & Flutter pitch drift simulation |
+| 🌙 **Turntable Sleep Timer** | Configurable sleep timer (15–60 min or End of Record) with authentic vinyl runout groove fade and tonearm auto-return |
+| 🖼️ **ID3 Album Art & 3D Vinyl Label** | Client-side ID3v2/FLAC metadata parser rendering extracted album artwork directly on the spinning 3D vinyl record |
+| ❤️ **Favorites & Play History** | Star favorite tracks, record listen counts (`Spun 4x`), and filter by **All**, **Favorites ❤️**, or **History 🕒** |
+| 📍 **Interactive Groove Scrubber** | Micro-groove timeline scrubber with needle hover cues and physical record zones (Lead-in, Outer, Mid, Inner) |
 | 🎷 **Procedural Vinyl Demos** | In-browser lo-fi jazz synthesis ("Midnight Groove" & "Analog Nostalgia") generates authentic WAV vinyl records on demand |
 | 🖱️ **Tonearm Dragging** | Physically grab and reposition the headshell to cue any point in the song |
 | 🪛 **Cueing Lever** | Click the 3D lever to drop or lift the stylus needle |
@@ -58,7 +63,7 @@ No servers. No uploads. Fully client-side and privacy-first. If you don't have l
 | ⚙️ **Motor Inertia** | Platter realistically accelerates and decelerates; pitch drops naturally as the motor slows |
 | 📂 **Local Folder Loading** | Native `showDirectoryPicker` API with a `webkitdirectory` fallback for all browsers |
 | 🔍 **Searchable Shelf** | Filter your loaded library by title, artist, or album in real time |
-| 💾 **Settings Persistence** | Saves your preferred theme, volume, crackle level, speed, and EQ profile in `localStorage` |
+| 💾 **Settings Persistence** | Saves your preferred theme, volume, crackle level, speed, EQ profile, and analog FX in `localStorage` |
 
 ---
 
@@ -158,14 +163,16 @@ The optimized production build is compiled to the `dist/` directory.
 melodex/
 ├── src/
 │   ├── components/
-│   │   ├── Turntable3D.tsx       # Three.js 3D turntable scene & interactive meshes
+│   │   ├── Turntable3D.tsx       # Three.js 3D turntable scene, vinyl label & interactive meshes
 │   │   ├── AudioVisualizer.tsx   # Real-time stereo VU meter & spectrum analyzer
-│   │   ├── EqualizerModal.tsx    # 3-band parametric EQ panel & tone presets
+│   │   ├── EqualizerModal.tsx    # 3-band parametric EQ & Analog Warmth FX console
+│   │   ├── SleepTimerModal.tsx   # Audiophile sleep timer & tonearm auto-return modal
 │   │   └── ShortcutsModal.tsx    # Keyboard shortcuts reference overlay
 │   ├── utils/
-│   │   ├── audioEngine.ts        # Web Audio graph (EQ, analyser, crackle, pitch)
+│   │   ├── audioEngine.ts        # Web Audio graph (EQ, tube drive, wow/flutter, analyser, crackle)
+│   │   ├── tagReader.ts          # Zero-dependency ID3v2/FLAC tag & album art parser
 │   │   └── demoGenerator.ts      # Procedural lo-fi jazz vinyl synthesis engine
-│   ├── App.tsx                    # Main layout, drag-drop, hotkeys, state management
+│   ├── App.tsx                    # Main layout, shelf filters, groove timeline, state management
 │   ├── types.ts                   # Shared TypeScript interfaces & models
 │   ├── index.css                  # Tailwind + custom animations
 │   ├── main.tsx                   # React entry point
@@ -195,11 +202,15 @@ melodex/
 
 - [x] Real-time audio visualizer & analog VU meter
 - [x] 3-band parametric equalizer panel & presets
+- [x] Analog warmth suite (tube amp saturation & wow/flutter drift)
 - [x] Custom turntable finishes (Obsidian, Walnut, Silver, Neon)
 - [x] Procedural vintage vinyl demo synthesis
 - [x] Viewport drag-and-drop audio loading
 - [x] Keyboard shortcut navigation suite
-- [ ] Album art extraction from audio metadata (ID3)
+- [x] Turntable sleep timer with vinyl runout fade & auto-return
+- [x] Album art extraction from audio metadata (ID3v2 & FLAC)
+- [x] Dynamic 3D spinning vinyl center label artwork
+- [x] Interactive micro-groove timeline scrubber with needle hover cues
 - [ ] Crossfade between multiple turntables (DJ mode)
 
 ---

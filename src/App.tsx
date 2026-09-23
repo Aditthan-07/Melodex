@@ -71,6 +71,14 @@ export default function App() {
   const [isMuted, setIsMuted] = useState(false);
   const [isShuffled, setIsShuffled] = useState(false);
   const [isRepeat, setIsRepeat] = useState(false);
+  const [hoverGroove, setHoverGroove] = useState<{ pct: number; time: number; zone: string } | null>(null);
+
+  const getGrooveZone = (pct: number): string => {
+    if (pct < 6) return 'Lead-in';
+    if (pct < 38) return 'Outer Groove';
+    if (pct < 75) return 'Mid Groove';
+    return 'Inner Groove';
+  };
   const [shelfFilter, setShelfFilter] = useState<ShelfFilter>('all');
   const [favorites, setFavorites] = useState<string[]>(() => {
     try {
@@ -902,13 +910,55 @@ export default function App() {
           </div>
           <div className="w-full flex items-center gap-2 max-w-sm">
             <span className="text-[9px] font-mono text-zinc-600 w-7 text-right">{fmt(currentTime)}</span>
-            <div className="flex-1 h-1 bg-zinc-900 rounded-full relative cursor-pointer overflow-hidden"
+            <div
+              className="flex-1 h-2 bg-zinc-950 border border-zinc-900 rounded-full relative cursor-pointer select-none group"
+              style={{
+                backgroundImage: 'repeating-linear-gradient(90deg, transparent, transparent 4px, rgba(255,255,255,0.04) 4px, rgba(255,255,255,0.04) 5px)',
+              }}
+              onMouseMove={e => {
+                if (!activeTrack || !duration) return;
+                const rect = e.currentTarget.getBoundingClientRect();
+                const pct = Math.max(0, Math.min(100, ((e.clientX - rect.left) / rect.width) * 100));
+                const time = (pct / 100) * duration;
+                setHoverGroove({ pct, time, zone: getGrooveZone(pct) });
+              }}
+              onMouseLeave={() => setHoverGroove(null)}
               onClick={e => {
                 if (!activeTrack || !duration) return;
                 const rect = (e.currentTarget as HTMLDivElement).getBoundingClientRect();
-                audioEngine.seek(((e.clientX - rect.left) / rect.width) * 100);
-              }}>
-              <div className="h-full bg-amber-500 rounded-full transition-all" style={{ width: `${progressPct}%` }} />
+                const pct = Math.max(0, Math.min(100, ((e.clientX - rect.left) / rect.width) * 100));
+                audioEngine.seek(pct);
+              }}
+            >
+              <div
+                className="h-full bg-gradient-to-r from-amber-600 to-amber-400 rounded-full transition-all relative overflow-hidden"
+                style={{ width: `${progressPct}%` }}
+              />
+
+              {duration > 0 && (
+                <div
+                  className="absolute top-1/2 -translate-y-1/2 w-1.5 h-3 bg-amber-400 border border-amber-200 rounded-sm shadow-md pointer-events-none transition-all"
+                  style={{ left: `calc(${progressPct}% - 3px)` }}
+                />
+              )}
+
+              {hoverGroove && (
+                <div
+                  className="absolute top-0 bottom-0 w-[1px] bg-white/80 pointer-events-none"
+                  style={{ left: `${hoverGroove.pct}%` }}
+                />
+              )}
+
+              {hoverGroove && (
+                <div
+                  className="absolute -top-7 px-2 py-0.5 bg-zinc-950/95 border border-amber-500/40 rounded-md text-[9px] font-mono text-zinc-200 shadow-xl pointer-events-none -translate-x-1/2 whitespace-nowrap z-30 flex items-center gap-1.5"
+                  style={{ left: `${hoverGroove.pct}%` }}
+                >
+                  <span className="text-amber-400 font-bold">{fmt(hoverGroove.time)}</span>
+                  <span className="text-zinc-600">•</span>
+                  <span className="text-zinc-400">{hoverGroove.zone}</span>
+                </div>
+              )}
             </div>
             <span className="text-[9px] font-mono text-zinc-600 w-7">{fmt(duration)}</span>
           </div>
