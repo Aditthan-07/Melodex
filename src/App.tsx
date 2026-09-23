@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   Play, Pause, SkipForward, SkipBack, Shuffle, Repeat,
   Volume2, VolumeX, Search, FolderOpen, Upload, Disc,
-  Music, Sparkles, Zap, Sliders, Keyboard, Heart, Clock,
+  Music, Sparkles, Zap, Sliders, Keyboard, Heart, Clock, Moon,
 } from 'lucide-react';
 import { Track, TurntableSettings, PlaybackState, ShelfFilter } from './types';
 import { audioEngine } from './utils/audioEngine';
@@ -10,6 +10,7 @@ import { Turntable3D } from './components/Turntable3D';
 import { AudioVisualizer } from './components/AudioVisualizer';
 import { EqualizerModal } from './components/EqualizerModal';
 import { ShortcutsModal } from './components/ShortcutsModal';
+import { SleepTimerModal, SleepTimerOption } from './components/SleepTimerModal';
 import { generateDemoTracks } from './utils/demoGenerator';
 
 const getRandomIndex = (length: number): number => {
@@ -124,6 +125,54 @@ export default function App() {
     });
   };
 
+  const [isSleepTimerOpen, setIsSleepTimerOpen] = useState(false);
+  const [sleepTimerOption, setSleepTimerOption] = useState<SleepTimerOption>(0);
+  const [sleepTimerRemaining, setSleepTimerRemaining] = useState<number | null>(null);
+  const sleepTimerOptionRef = useRef<SleepTimerOption>(0);
+  useEffect(() => {
+    sleepTimerOptionRef.current = sleepTimerOption;
+  }, [sleepTimerOption]);
+
+  const triggerRunoutShutoff = useCallback(() => {
+    let step = 0;
+    const steps = 15;
+    const startVol = isMuted ? 0 : volume;
+    const fadeInterval = setInterval(() => {
+      step++;
+      const factor = Math.max(0, 1 - step / steps);
+      audioEngine.setVolume(startVol * factor);
+      if (step >= steps) {
+        clearInterval(fadeInterval);
+        setSettings(p => ({ ...p, cueingLeverUp: true }));
+        setPlaybackState('stopped');
+        audioEngine.pause();
+        audioEngine.setVolume(startVol);
+        setSleepTimerOption(0);
+        setSleepTimerRemaining(null);
+      }
+    }, 150);
+  }, [isMuted, volume]);
+
+  const handleSelectSleepTimer = (opt: SleepTimerOption) => {
+    setSleepTimerOption(opt);
+    setSleepTimerRemaining(opt > 0 ? opt * 60 : null);
+  };
+
+  useEffect(() => {
+    if (sleepTimerOption <= 0) return;
+    const interval = setInterval(() => {
+      setSleepTimerRemaining(prev => {
+        if (prev === null || prev <= 1) {
+          clearInterval(interval);
+          triggerRunoutShutoff();
+          return null;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [sleepTimerOption, triggerRunoutShutoff]);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const folderInputRef = useRef<HTMLInputElement>(null);
 
@@ -149,8 +198,14 @@ export default function App() {
       setCurrentTime(cur);
       if (tot && isFinite(tot)) setDuration(tot);
     };
-    audioEngine.onEnded = () => handleNextTrackRef.current();
-  }, []);
+    audioEngine.onEnded = () => {
+      if (sleepTimerOptionRef.current === -1) {
+        triggerRunoutShutoff();
+      } else {
+        handleNextTrackRef.current();
+      }
+    };
+  }, [triggerRunoutShutoff]);
 
   const handlePlay = () => {
     if (!activeTrack) return;
@@ -548,6 +603,27 @@ export default function App() {
           </div>
 
           <button
+            onClick={() => setIsSleepTimerOpen(true)}
+            title={sleepTimerOption === 0 ? "Sleep Timer" : "Sleep Timer Active"}
+            className={`flex items-center gap-1.5 px-2 py-1.5 rounded-lg border text-xs font-mono transition-all cursor-pointer ${
+              sleepTimerOption !== 0
+                ? 'bg-indigo-500/20 border-indigo-500/50 text-indigo-300 shadow-sm'
+                : 'bg-zinc-950 hover:bg-zinc-900 border-zinc-900 hover:border-zinc-800 text-zinc-400 hover:text-indigo-400'
+            }`}
+          >
+            <Moon className={`w-3.5 h-3.5 ${sleepTimerOption !== 0 ? 'fill-current text-indigo-400' : ''}`} />
+            {sleepTimerOption !== 0 && (
+              <span className="text-[10px] font-bold">
+                {sleepTimerOption === -1
+                  ? 'Auto'
+                  : sleepTimerRemaining !== null
+                  ? `${Math.floor(sleepTimerRemaining / 60)}:${(sleepTimerRemaining % 60).toString().padStart(2, '0')}`
+                  : `${sleepTimerOption}m`}
+              </span>
+            )}
+          </button>
+
+          <button
             onClick={() => setIsShortcutsOpen(true)}
             title="Keyboard Shortcuts (?)"
             className="p-1.5 rounded-lg bg-zinc-950 hover:bg-zinc-900 border border-zinc-900 hover:border-zinc-800 text-zinc-400 hover:text-amber-400 transition-colors cursor-pointer"
@@ -863,6 +939,14 @@ export default function App() {
       <ShortcutsModal
         isOpen={isShortcutsOpen}
         onClose={() => setIsShortcutsOpen(false)}
+      />
+
+      <SleepTimerModal
+        isOpen={isSleepTimerOpen}
+        onClose={() => setIsSleepTimerOpen(false)}
+        currentTimer={sleepTimerOption}
+        remainingSeconds={sleepTimerRemaining}
+        onSelectOption={handleSelectSleepTimer}
       />
     </div>
   );
