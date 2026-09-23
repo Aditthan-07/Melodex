@@ -2,9 +2,9 @@ import React, { useState, useEffect, useRef } from 'react';
 import {
   Play, Pause, SkipForward, SkipBack, Shuffle, Repeat,
   Volume2, VolumeX, Search, FolderOpen, Upload, Disc,
-  Music, Sparkles, Zap, Sliders, Keyboard,
+  Music, Sparkles, Zap, Sliders, Keyboard, Heart, Clock,
 } from 'lucide-react';
-import { Track, TurntableSettings, PlaybackState } from './types';
+import { Track, TurntableSettings, PlaybackState, ShelfFilter } from './types';
 import { audioEngine } from './utils/audioEngine';
 import { Turntable3D } from './components/Turntable3D';
 import { AudioVisualizer } from './components/AudioVisualizer';
@@ -69,6 +69,61 @@ export default function App() {
   const [isMuted, setIsMuted] = useState(false);
   const [isShuffled, setIsShuffled] = useState(false);
   const [isRepeat, setIsRepeat] = useState(false);
+  const [shelfFilter, setShelfFilter] = useState<ShelfFilter>('all');
+  const [favorites, setFavorites] = useState<string[]>(() => {
+    try {
+      const raw = localStorage.getItem('melodex_favorites');
+      return raw ? JSON.parse(raw) : [];
+    } catch {
+      return [];
+    }
+  });
+  const [playStats, setPlayStats] = useState<Record<string, { playCount: number; lastPlayed: number }>>(() => {
+    try {
+      const raw = localStorage.getItem('melodex_play_stats');
+      return raw ? JSON.parse(raw) : {};
+    } catch {
+      return {};
+    }
+  });
+
+  const getTrackKey = (t: Track): string => `${t.title}__${t.artist}`;
+  const isTrackFavorite = (t: Track): boolean => favorites.includes(getTrackKey(t));
+
+  const toggleFavorite = (t: Track, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    const key = getTrackKey(t);
+    setFavorites(prev => {
+      const next = prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key];
+      try {
+        localStorage.setItem('melodex_favorites', JSON.stringify(next));
+      } catch (err) {
+        console.debug('Failed to save favorites:', err);
+      }
+      return next;
+    });
+  };
+
+  const recordTrackPlay = (t: Track) => {
+    const key = getTrackKey(t);
+    setPlayStats(prev => {
+      const current = prev[key] || { playCount: 0, lastPlayed: 0 };
+      const updated = {
+        ...prev,
+        [key]: {
+          playCount: current.playCount + 1,
+          lastPlayed: Date.now(),
+        },
+      };
+      try {
+        localStorage.setItem('melodex_play_stats', JSON.stringify(updated));
+      } catch (err) {
+        console.debug('Failed to save play stats:', err);
+      }
+      return updated;
+    });
+  };
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const folderInputRef = useRef<HTMLInputElement>(null);
 
@@ -99,6 +154,7 @@ export default function App() {
 
   const handlePlay = () => {
     if (!activeTrack) return;
+    recordTrackPlay(activeTrack);
     setSettings(p => ({ ...p, cueingLeverUp: false }));
     setPlaybackState('playing');
     audioEngine.play();
@@ -112,6 +168,7 @@ export default function App() {
 
   const handleNeedleDrop = (progress: number) => {
     if (!activeTrack) return;
+    recordTrackPlay(activeTrack);
     setSettings(p => ({ ...p, cueingLeverUp: false }));
     setPlaybackState('playing');
     audioEngine.seek(progress * 100);
@@ -122,11 +179,13 @@ export default function App() {
 
   const selectAndPlayTrack = async (index: number) => {
     if (index < 0 || index >= tracks.length) return;
+    const target = tracks[index];
+    recordTrackPlay(target);
     setActiveTrackIndex(index);
     setSettings(p => ({ ...p, cueingLeverUp: true }));
     setPlaybackState('stopped');
     setCurrentTime(0); setDuration(0);
-    await audioEngine.setTrack(tracks[index]);
+    await audioEngine.setTrack(target);
     setTimeout(() => {
       setSettings(p => ({ ...p, cueingLeverUp: false }));
       setPlaybackState('playing');
@@ -407,11 +466,29 @@ export default function App() {
     return `${Math.floor(s / 60)}:${Math.floor(s % 60).toString().padStart(2, '0')}`;
   };
 
-  const filteredTracks = tracks.filter(t =>
-    t.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    t.artist.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (t.album ?? '').toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const getTrackStats = (t: Track) => playStats[getTrackKey(t)] || { playCount: 0, lastPlayed: 0 };
+
+  const filteredTracks = tracks
+    .filter(t => {
+      const matchesSearch =
+        t.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        t.artist.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (t.album ?? '').toLowerCase().includes(searchQuery.toLowerCase());
+      if (!matchesSearch) return false;
+
+      if (shelfFilter === 'favorites') return isTrackFavorite(t);
+      if (shelfFilter === 'history') return getTrackStats(t).playCount > 0;
+      return true;
+    })
+    .sort((a, b) => {
+      if (shelfFilter === 'history') {
+        return (getTrackStats(b).lastPlayed || 0) - (getTrackStats(a).lastPlayed || 0);
+      }
+      return 0;
+    });
+
+  const favoritesCount = tracks.filter(isTrackFavorite).length;
+  const historyCount = tracks.filter(t => getTrackStats(t).playCount > 0).length;
 
   const progressPct = duration > 0 ? (currentTime / duration) * 100 : 0;
   const trackColors = ['from-violet-900/70','from-emerald-900/70','from-amber-900/70','from-rose-900/70','from-sky-900/70','from-fuchsia-900/70'];
@@ -550,6 +627,43 @@ export default function App() {
                   <span className="text-[9px] font-mono text-zinc-600">{filteredTracks.length} / {tracks.length}</span>
                 </div>
               </div>
+
+              {/* Shelf Filter Tabs */}
+              <div className="flex items-center gap-1 bg-zinc-950/90 rounded-lg p-1 border border-zinc-900 text-[10px] font-mono flex-shrink-0">
+                <button
+                  onClick={() => setShelfFilter('all')}
+                  className={`flex-1 py-1 rounded-md text-center transition-all cursor-pointer ${
+                    shelfFilter === 'all'
+                      ? 'bg-amber-500 text-zinc-950 font-bold shadow-sm'
+                      : 'text-zinc-500 hover:text-zinc-300'
+                  }`}
+                >
+                  All ({tracks.length})
+                </button>
+                <button
+                  onClick={() => setShelfFilter('favorites')}
+                  className={`flex-1 py-1 rounded-md text-center transition-all cursor-pointer flex items-center justify-center gap-1 ${
+                    shelfFilter === 'favorites'
+                      ? 'bg-rose-500 text-white font-bold shadow-sm'
+                      : 'text-zinc-500 hover:text-rose-400'
+                  }`}
+                >
+                  <Heart className={`w-3 h-3 ${shelfFilter === 'favorites' ? 'fill-current' : ''}`} />
+                  <span>Favs ({favoritesCount})</span>
+                </button>
+                <button
+                  onClick={() => setShelfFilter('history')}
+                  className={`flex-1 py-1 rounded-md text-center transition-all cursor-pointer flex items-center justify-center gap-1 ${
+                    shelfFilter === 'history'
+                      ? 'bg-sky-500 text-zinc-950 font-bold shadow-sm'
+                      : 'text-zinc-500 hover:text-sky-400'
+                  }`}
+                >
+                  <Clock className="w-3 h-3" />
+                  <span>History ({historyCount})</span>
+                </button>
+              </div>
+
               <div className="relative flex-shrink-0">
                 <Search className="absolute left-3 top-2.5 w-3.5 h-3.5 text-zinc-600" />
                 <input type="text" value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
@@ -563,11 +677,13 @@ export default function App() {
               <div className="flex-1 overflow-y-auto flex flex-col gap-1 min-h-0 pr-0.5 scrollbar-none">
                 {filteredTracks.length === 0 ? (
                   <div className="flex-1 flex flex-col items-center justify-center text-center p-6 text-zinc-600 border border-dashed border-zinc-900 rounded-xl">
-                    <Music className="w-5 h-5 opacity-30 mb-2" /><span className="text-[11px]">No tracks match your search.</span>
+                    <Music className="w-5 h-5 opacity-30 mb-2" /><span className="text-[11px]">No tracks match your search or filter.</span>
                   </div>
                 ) : filteredTracks.map(track => {
                   const origIdx = tracks.findIndex(t => t.id === track.id);
                   const isActive = origIdx === activeTrackIndex;
+                  const isFav = isTrackFavorite(track);
+                  const stats = getTrackStats(track);
                   return (
                     <div key={track.id} onClick={() => isActive ? (playbackState === 'playing' ? handlePause() : handlePlay()) : selectAndPlayTrack(origIdx)}
                       className={`flex items-center gap-3 p-2.5 rounded-xl border transition-all cursor-pointer group ${isActive ? 'bg-zinc-900/80 border-amber-500/50 shadow-md' : 'bg-zinc-950/20 border-zinc-950 hover:bg-zinc-900/30 hover:border-zinc-900'}`}>
@@ -575,10 +691,28 @@ export default function App() {
                         <Disc className={`w-3.5 h-3.5 text-zinc-400 opacity-75 ${isActive && playbackState === 'playing' ? 'animate-spin' : ''}`} style={{ animationDuration: '2.5s' }} />
                       </div>
                       <div className="min-w-0 flex-1">
-                        <p className={`text-xs font-semibold truncate leading-none mb-0.5 ${isActive ? 'text-amber-200' : 'text-zinc-200 group-hover:text-zinc-100'}`}>{track.title}</p>
-                        <p className="text-[10px] text-zinc-500 truncate leading-none">{track.artist}</p>
+                        <p className={`text-xs font-semibold truncate leading-none mb-1 ${isActive ? 'text-amber-200' : 'text-zinc-200 group-hover:text-zinc-100'}`}>{track.title}</p>
+                        <div className="flex items-center gap-2">
+                          <p className="text-[10px] text-zinc-500 truncate leading-none">{track.artist}</p>
+                          {stats.playCount > 0 && (
+                            <span className="text-[8px] font-mono px-1 py-0.5 rounded bg-zinc-900/90 text-amber-400/80 border border-zinc-800 leading-none">
+                              {stats.playCount}x
+                            </span>
+                          )}
+                        </div>
                       </div>
-                      <div className="flex-shrink-0 flex items-center gap-1 pl-1">
+                      <div className="flex-shrink-0 flex items-center gap-2 pl-1">
+                        <button
+                          onClick={(e) => toggleFavorite(track, e)}
+                          title={isFav ? "Remove from Favorites" : "Add to Favorites"}
+                          className={`p-1 rounded-md transition-colors cursor-pointer ${
+                            isFav
+                              ? 'text-rose-500 hover:text-rose-400'
+                              : 'text-zinc-600 hover:text-zinc-400 opacity-0 group-hover:opacity-100'
+                          }`}
+                        >
+                          <Heart className={`w-3.5 h-3.5 ${isFav ? 'fill-current text-rose-500' : ''}`} />
+                        </button>
                         {isActive && playbackState === 'playing' ? (
                           <div className="flex items-end gap-[2px] h-4">
                             <span className="w-[2px] bg-amber-400 rounded-full wave-bar-1" />
@@ -607,6 +741,17 @@ export default function App() {
             <p className="font-serif font-semibold text-zinc-100 text-xs truncate leading-none mb-1">{activeTrack ? activeTrack.title : 'No track loaded'}</p>
             <p className="text-zinc-500 text-[10px] truncate leading-none">{activeTrack ? activeTrack.artist : 'Open a folder to begin'}</p>
           </div>
+          {activeTrack && (
+            <button
+              onClick={(e) => toggleFavorite(activeTrack, e)}
+              title={isTrackFavorite(activeTrack) ? "Remove from Favorites" : "Add to Favorites"}
+              className={`p-1.5 rounded-lg transition-colors cursor-pointer flex-shrink-0 ${
+                isTrackFavorite(activeTrack) ? 'text-rose-500 hover:text-rose-400' : 'text-zinc-600 hover:text-zinc-300'
+              }`}
+            >
+              <Heart className={`w-3.5 h-3.5 ${isTrackFavorite(activeTrack) ? 'fill-current text-rose-500' : ''}`} />
+            </button>
+          )}
         </div>
 
         <div className="flex flex-col items-center gap-1.5 flex-1 min-w-0">

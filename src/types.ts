@@ -7,7 +7,12 @@ export interface Track {
   url?: string;
   file?: File;
   isDemo?: boolean;
+  isFavorite?: boolean;
+  playCount?: number;
+  lastPlayed?: number;
 }
+
+export type ShelfFilter = 'all' | 'favorites' | 'history';
 
 export type PlaybackState = 'stopped' | 'playing' | 'paused';
 
