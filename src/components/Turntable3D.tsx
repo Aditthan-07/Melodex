@@ -336,6 +336,38 @@ export const Turntable3D: React.FC<Turntable3DProps> = ({
 
     const paintLabel = () => {
       lCtx.clearRect(0, 0, 256, 256);
+
+      if (activeTrack?.coverUrl) {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = () => {
+          lCtx.save();
+          lCtx.beginPath();
+          lCtx.arc(128, 128, 120, 0, Math.PI * 2);
+          lCtx.clip();
+          lCtx.drawImage(img, 8, 8, 240, 240);
+          lCtx.restore();
+
+          lCtx.strokeStyle = 'rgba(255, 255, 255, 0.35)';
+          lCtx.lineWidth = 2.5;
+          lCtx.beginPath();
+          lCtx.arc(128, 128, 120, 0, Math.PI * 2);
+          lCtx.stroke();
+
+          lCtx.fillStyle = '#0a0a0c';
+          lCtx.beginPath();
+          lCtx.arc(128, 128, 16, 0, Math.PI * 2);
+          lCtx.fill();
+          lCtx.strokeStyle = '#d4af37';
+          lCtx.lineWidth = 2;
+          lCtx.stroke();
+
+          labelTex.needsUpdate = true;
+        };
+        img.src = activeTrack.coverUrl;
+        return;
+      }
+
       const grad = lCtx.createRadialGradient(128, 128, 0, 128, 128, 120);
       grad.addColorStop(0, '#f0d8a8');
       grad.addColorStop(0.6, '#e4c680');
@@ -364,6 +396,14 @@ export const Turntable3D: React.FC<Turntable3DProps> = ({
       lCtx.font = 'bold 8px monospace';
       lCtx.fillStyle = 'rgba(80,45,15,0.5)';
       lCtx.fillText('STEREO  LP  33⅓ RPM', 128, 162);
+
+      lCtx.fillStyle = '#0a0a0c';
+      lCtx.beginPath();
+      lCtx.arc(128, 128, 16, 0, Math.PI * 2);
+      lCtx.fill();
+      lCtx.strokeStyle = '#6b3c14';
+      lCtx.lineWidth = 2;
+      lCtx.stroke();
 
       labelTex.needsUpdate = true;
     };

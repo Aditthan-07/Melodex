@@ -10,6 +10,7 @@ export interface Track {
   isFavorite?: boolean;
   playCount?: number;
   lastPlayed?: number;
+  coverUrl?: string;
 }
 
 export type ShelfFilter = 'all' | 'favorites' | 'history';

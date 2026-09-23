@@ -12,6 +12,7 @@ import { EqualizerModal } from './components/EqualizerModal';
 import { ShortcutsModal } from './components/ShortcutsModal';
 import { SleepTimerModal, SleepTimerOption } from './components/SleepTimerModal';
 import { generateDemoTracks } from './utils/demoGenerator';
+import { extractAudioMetadata } from './utils/tagReader';
 
 const getRandomIndex = (length: number): number => {
   return Math.floor(Math.random() * length);
@@ -404,12 +405,33 @@ export default function App() {
   };
 
   const AUDIO_EXTS = ['.mp3', '.wav', '.m4a', '.ogg', '.flac', '.aac', '.opus'];
-  const buildTrack = (file: File, idx: number, album = 'Local Folder'): Track => ({
-    id: `track_${idx}_${Date.now()}`,
-    title: file.name.replace(/\.[^.]+$/, '').replace(/^\d+[\s._-]+/, '').trim() || file.name,
-    artist: 'Local', album, duration: 0,
-    url: URL.createObjectURL(file), file,
-  });
+  const buildTrack = async (file: File, idx: number, album = 'Local Folder'): Promise<Track> => {
+    let title = file.name.replace(/\.[^.]+$/, '').replace(/^\d+[\s._-]+/, '').trim() || file.name;
+    let artist = 'Local';
+    let alb = album;
+    let coverUrl: string | undefined;
+
+    try {
+      const meta = await extractAudioMetadata(file);
+      if (meta.title) title = meta.title;
+      if (meta.artist) artist = meta.artist;
+      if (meta.album) alb = meta.album;
+      if (meta.coverUrl) coverUrl = meta.coverUrl;
+    } catch (e) {
+      console.debug('Failed to parse metadata:', e);
+    }
+
+    return {
+      id: `track_${idx}_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+      title,
+      artist,
+      album: alb,
+      duration: 0,
+      url: URL.createObjectURL(file),
+      file,
+      coverUrl,
+    };
+  };
 
   const handleOpenFolder = async () => {
     if (!('showDirectoryPicker' in window)) { folderInputRef.current?.click(); return; }
@@ -424,7 +446,8 @@ export default function App() {
           const ext = entry.name.substring(entry.name.lastIndexOf('.')).toLowerCase();
           if (AUDIO_EXTS.includes(ext)) {
             const f = await entry.getFile();
-            loaded.push(buildTrack(f, loaded.length, dir.name));
+            const track = await buildTrack(f, loaded.length, dir.name);
+            loaded.push(track);
           }
         }
       }
@@ -442,7 +465,10 @@ export default function App() {
     for (let i = 0; i < files.length; i++) {
       const f = files[i];
       const ext = f.name.substring(f.name.lastIndexOf('.')).toLowerCase();
-      if (AUDIO_EXTS.includes(ext) || f.type.startsWith('audio/')) loaded.push(buildTrack(f, loaded.length));
+      if (AUDIO_EXTS.includes(ext) || f.type.startsWith('audio/')) {
+        const track = await buildTrack(f, loaded.length);
+        loaded.push(track);
+      }
     }
     if (loaded.length) {
       setTracks(loaded); setActiveTrackIndex(0); setCurrentTime(0); setDuration(0);
@@ -454,7 +480,10 @@ export default function App() {
     const files = e.target.files;
     if (!files?.length) return;
     const loaded: Track[] = [];
-    for (let i = 0; i < files.length; i++) loaded.push(buildTrack(files[i], i, 'My Collection'));
+    for (let i = 0; i < files.length; i++) {
+      const track = await buildTrack(files[i], i, 'My Collection');
+      loaded.push(track);
+    }
     if (loaded.length) {
       setTracks(loaded); setActiveTrackIndex(0); setCurrentTime(0); setDuration(0);
       await audioEngine.setTrack(loaded[0]);
@@ -495,7 +524,8 @@ export default function App() {
       const f = files[i];
       const ext = f.name.substring(f.name.lastIndexOf('.')).toLowerCase();
       if (AUDIO_EXTS.includes(ext) || f.type.startsWith('audio/')) {
-        loaded.push(buildTrack(f, tracks.length + loaded.length, 'Dropped Vinyl'));
+        const track = await buildTrack(f, tracks.length + loaded.length, 'Dropped Vinyl');
+        loaded.push(track);
       }
     }
     if (loaded.length) {
@@ -763,8 +793,12 @@ export default function App() {
                   return (
                     <div key={track.id} onClick={() => isActive ? (playbackState === 'playing' ? handlePause() : handlePlay()) : selectAndPlayTrack(origIdx)}
                       className={`flex items-center gap-3 p-2.5 rounded-xl border transition-all cursor-pointer group ${isActive ? 'bg-zinc-900/80 border-amber-500/50 shadow-md' : 'bg-zinc-950/20 border-zinc-950 hover:bg-zinc-900/30 hover:border-zinc-900'}`}>
-                      <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${trackColors[origIdx % trackColors.length]} to-zinc-950 border border-zinc-900/80 flex items-center justify-center flex-shrink-0 shadow-inner`}>
-                        <Disc className={`w-3.5 h-3.5 text-zinc-400 opacity-75 ${isActive && playbackState === 'playing' ? 'animate-spin' : ''}`} style={{ animationDuration: '2.5s' }} />
+                      <div className={`w-8 h-8 rounded-lg overflow-hidden border border-zinc-900/80 flex items-center justify-center flex-shrink-0 shadow-inner ${track.coverUrl ? '' : `bg-gradient-to-br ${trackColors[origIdx % trackColors.length]} to-zinc-950`}`}>
+                        {track.coverUrl ? (
+                          <img src={track.coverUrl} alt="" className="w-full h-full object-cover" />
+                        ) : (
+                          <Disc className={`w-3.5 h-3.5 text-zinc-400 opacity-75 ${isActive && playbackState === 'playing' ? 'animate-spin' : ''}`} style={{ animationDuration: '2.5s' }} />
+                        )}
                       </div>
                       <div className="min-w-0 flex-1">
                         <p className={`text-xs font-semibold truncate leading-none mb-1 ${isActive ? 'text-amber-200' : 'text-zinc-200 group-hover:text-zinc-100'}`}>{track.title}</p>
@@ -810,8 +844,14 @@ export default function App() {
 
       <div className="w-full max-w-6xl flex-shrink-0 rounded-xl bg-gradient-to-r from-[#0c0c10] via-[#090910] to-[#070709] border border-zinc-900/80 shadow-2xl flex flex-col md:flex-row items-center gap-3 px-4 py-3 mb-1">
         <div className="flex items-center gap-3 w-full md:w-56 flex-shrink-0">
-          <div className="w-10 h-10 rounded-xl bg-zinc-950 border border-zinc-900 flex items-center justify-center flex-shrink-0">
-            {playbackState === 'playing' ? <Disc className="w-4 h-4 text-amber-500 animate-spin" style={{ animationDuration: '2.2s' }} /> : <Music className="w-4 h-4 text-zinc-600" />}
+          <div className="w-10 h-10 rounded-xl overflow-hidden bg-zinc-950 border border-zinc-900 flex items-center justify-center flex-shrink-0 shadow-md">
+            {activeTrack?.coverUrl ? (
+              <img src={activeTrack.coverUrl} alt="" className="w-full h-full object-cover" />
+            ) : playbackState === 'playing' ? (
+              <Disc className="w-4 h-4 text-amber-500 animate-spin" style={{ animationDuration: '2.2s' }} />
+            ) : (
+              <Music className="w-4 h-4 text-zinc-600" />
+            )}
           </div>
           <div className="min-w-0 flex-1">
             <p className="font-serif font-semibold text-zinc-100 text-xs truncate leading-none mb-1">{activeTrack ? activeTrack.title : 'No track loaded'}</p>
