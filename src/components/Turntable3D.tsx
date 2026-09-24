@@ -1,8 +1,52 @@
 import React, { useRef, useEffect, useState } from 'react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { Track, TurntableSettings, TurntableTheme } from '../types';
+import { Track, TurntableSettings, TurntableTheme, VinylWax } from '../types';
 import { audioEngine } from '../utils/audioEngine';
+
+interface WaxConfig {
+  color: number;
+  roughness: number;
+  metalness: number;
+  transparent: boolean;
+  opacity: number;
+  emissive: number;
+}
+
+const WAX_CONFIGS: Record<VinylWax, WaxConfig> = {
+  classic: {
+    color: 0x100e14,
+    roughness: 0.08,
+    metalness: 0.88,
+    transparent: false,
+    opacity: 1.0,
+    emissive: 0x000000,
+  },
+  amber: {
+    color: 0xd97706,
+    roughness: 0.18,
+    metalness: 0.45,
+    transparent: true,
+    opacity: 0.82,
+    emissive: 0x451a03,
+  },
+  ruby: {
+    color: 0xb91c1c,
+    roughness: 0.15,
+    metalness: 0.50,
+    transparent: true,
+    opacity: 0.85,
+    emissive: 0x450a0a,
+  },
+  neon: {
+    color: 0x06b6d4,
+    roughness: 0.12,
+    metalness: 0.60,
+    transparent: true,
+    opacity: 0.88,
+    emissive: 0x083344,
+  },
+};
 
 interface ThemeConfig {
   plinthColor: number;
@@ -71,6 +115,7 @@ interface Turntable3DProps {
   cueingLeverUp: boolean;
   crackleVolume: number;
   theme?: TurntableTheme;
+  wax?: VinylWax;
   onNeedleDrop: (progress: number) => void;
   onNeedleLift: () => void;
   onSettingsChange: (settings: Partial<TurntableSettings & { isPlaying?: boolean; speedMode?: 33 | 45 }>) => void;
@@ -85,6 +130,7 @@ export const Turntable3D: React.FC<Turntable3DProps> = ({
   speedMode,
   cueingLeverUp,
   theme = 'obsidian',
+  wax = 'classic',
   onNeedleDrop,
   onNeedleLift,
   onSettingsChange,
@@ -99,6 +145,22 @@ export const Turntable3D: React.FC<Turntable3DProps> = ({
     topPlate?: THREE.MeshStandardMaterial;
     felt?: THREE.MeshStandardMaterial;
   } | null>(null);
+  const vinylMatRef = useRef<THREE.MeshStandardMaterial | null>(null);
+
+  const waxRef = useRef(wax);
+  useEffect(() => {
+    waxRef.current = wax;
+    if (!vinylMatRef.current) return;
+    const cfg = WAX_CONFIGS[wax || 'classic'];
+    const mat = vinylMatRef.current;
+    mat.color.setHex(cfg.color);
+    mat.roughness = cfg.roughness;
+    mat.metalness = cfg.metalness;
+    mat.transparent = cfg.transparent;
+    mat.opacity = cfg.opacity;
+    mat.emissive.setHex(cfg.emissive);
+    mat.needsUpdate = true;
+  }, [wax]);
 
   const themeRef = useRef(theme);
   useEffect(() => {
@@ -318,13 +380,18 @@ export const Turntable3D: React.FC<Turntable3DProps> = ({
     const grooveTex = new THREE.CanvasTexture(vCanvas);
 
     const vinylGeo = new THREE.CylinderGeometry(1.24, 1.24, 0.014, 72);
+    const initWaxCfg = WAX_CONFIGS[waxRef.current || 'classic'];
     const vinylMat = new THREE.MeshStandardMaterial({
-      color: 0x100e14,
-      roughness: 0.08,
-      metalness: 0.88,
+      color: initWaxCfg.color,
+      roughness: initWaxCfg.roughness,
+      metalness: initWaxCfg.metalness,
+      transparent: initWaxCfg.transparent,
+      opacity: initWaxCfg.opacity,
+      emissive: initWaxCfg.emissive,
       map: grooveTex,
       envMapIntensity: 2.8,
     });
+    vinylMatRef.current = vinylMat;
     const vinylBody = new THREE.Mesh(vinylGeo, vinylMat);
     vinylBody.castShadow = true;
     vinylGroup.add(vinylBody);
@@ -769,6 +836,7 @@ export const Turntable3D: React.FC<Turntable3DProps> = ({
       renderer.domElement.removeEventListener('mousemove', onPointerMove);
       renderer.domElement.removeEventListener('touchstart', onPointerDown);
       renderer.domElement.removeEventListener('touchmove', onPointerMove);
+      vinylMatRef.current = null;
       renderer.dispose();
     };
   }, [activeTrack]);

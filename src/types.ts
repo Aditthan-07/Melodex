@@ -19,6 +19,8 @@ export type PlaybackState = 'stopped' | 'playing' | 'paused';
 
 export type TurntableTheme = 'obsidian' | 'walnut' | 'silver' | 'neon';
 
+export type VinylWax = 'classic' | 'amber' | 'ruby' | 'neon';
+
 export interface EQSettings {
   bass: number;    // -12 to +12 dB
   mid: number;     // -12 to +12 dB
@@ -37,6 +39,7 @@ export interface TurntableSettings {
   crackleVolume: number;
   isGrabbingHeadshell: boolean;
   theme: TurntableTheme;
+  wax: VinylWax;
   eq: EQSettings;
   analogFX: AnalogFXSettings;
 }

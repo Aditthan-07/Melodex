@@ -30,6 +30,7 @@ const loadSavedSettings = (): TurntableSettings => {
         crackleVolume: typeof parsed.crackleVolume === 'number' ? parsed.crackleVolume : 0.42,
         isGrabbingHeadshell: false,
         theme: ['obsidian', 'walnut', 'silver', 'neon'].includes(parsed.theme) ? parsed.theme : 'obsidian',
+        wax: ['classic', 'amber', 'ruby', 'neon'].includes(parsed.wax) ? parsed.wax : 'classic',
         eq: parsed.eq || { bass: 0, mid: 0, treble: 0 },
         analogFX: parsed.analogFX || { warmth: 0, flutter: 0 },
       };
@@ -44,6 +45,7 @@ const loadSavedSettings = (): TurntableSettings => {
     crackleVolume: 0.42,
     isGrabbingHeadshell: false,
     theme: 'obsidian',
+    wax: 'classic',
     eq: { bass: 0, mid: 0, treble: 0 },
     analogFX: { warmth: 0, flutter: 0 },
   };
@@ -283,13 +285,14 @@ export default function App() {
         speed: settings.speed,
         crackleVolume: settings.crackleVolume,
         theme: settings.theme,
+        wax: settings.wax,
         eq: settings.eq,
         analogFX: settings.analogFX,
       }));
     } catch (err) {
       console.debug('Failed to save settings:', err);
     }
-  }, [settings.speed, settings.crackleVolume, settings.theme, settings.eq, settings.analogFX]);
+  }, [settings.speed, settings.crackleVolume, settings.theme, settings.wax, settings.eq, settings.analogFX]);
 
   useEffect(() => {
     try {
@@ -624,6 +627,7 @@ export default function App() {
 
         <div className="flex items-center gap-2">
           <div className="hidden lg:flex items-center gap-1 bg-zinc-950/90 rounded-lg p-1 border border-zinc-900 text-[10px] font-mono">
+            <span className="text-[9px] text-zinc-500 uppercase px-1 font-semibold">Finish</span>
             {(['obsidian', 'walnut', 'silver', 'neon'] as const).map((t) => (
               <button
                 key={t}
@@ -636,6 +640,24 @@ export default function App() {
                 }`}
               >
                 {t}
+              </button>
+            ))}
+          </div>
+
+          <div className="hidden xl:flex items-center gap-1 bg-zinc-950/90 rounded-lg p-1 border border-zinc-900 text-[10px] font-mono">
+            <span className="text-[9px] text-zinc-500 uppercase px-1 font-semibold">Wax</span>
+            {(['classic', 'amber', 'ruby', 'neon'] as const).map((w) => (
+              <button
+                key={w}
+                onClick={() => setSettings((s) => ({ ...s, wax: w }))}
+                title={`Switch vinyl wax pressing to ${w}`}
+                className={`px-2 py-0.5 rounded capitalize transition-all cursor-pointer ${
+                  settings.wax === w
+                    ? 'bg-amber-500 text-zinc-950 font-bold shadow-sm'
+                    : 'text-zinc-500 hover:text-zinc-300'
+                }`}
+              >
+                {w}
               </button>
             ))}
           </div>
@@ -692,7 +714,7 @@ export default function App() {
         <div className="flex-[1.35] min-h-[220px] md:h-full rounded-2xl overflow-hidden border border-zinc-900/80 shadow-2xl bg-[#030205]/95 flex flex-col">
           <Turntable3D activeTrack={activeTrack} isPlaying={playbackState === 'playing'} pitch={settings.pitch}
             speedMode={settings.speed} cueingLeverUp={settings.cueingLeverUp} crackleVolume={settings.crackleVolume}
-            theme={settings.theme}
+            theme={settings.theme} wax={settings.wax}
             onNeedleDrop={handleNeedleDrop} onNeedleLift={handleNeedleLift} onSettingsChange={handleSettingsFrom3D}
             currentTime={currentTime} duration={duration} />
         </div>
@@ -993,9 +1015,17 @@ export default function App() {
               onChange={e => setSettings(p => ({ ...p, pitch: parseFloat(e.target.value) }))}
               className="w-14 accent-amber-500"
               title={`Pitch: ${settings.pitch > 0 ? '+' : ''}${settings.pitch.toFixed(1)}%`} />
-            <span className="text-[9px] font-mono text-zinc-600 w-8">
-              {settings.pitch > 0 ? '+' : ''}{settings.pitch.toFixed(1)}%
-            </span>
+            <button
+              onClick={() => setSettings(p => ({ ...p, pitch: 0.0 }))}
+              title={settings.pitch === 0 ? "Quartz Lock engaged (0.0%)" : "Quartz Lock: Click to reset pitch to 0.0%"}
+              className={`text-[9px] font-mono px-1.5 py-0.5 rounded border transition-all cursor-pointer ${
+                settings.pitch === 0
+                  ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/40 font-bold'
+                  : 'bg-zinc-900 hover:bg-zinc-800 text-amber-400/90 border-zinc-800'
+              }`}
+            >
+              {settings.pitch === 0 ? 'LOCK' : `${settings.pitch > 0 ? '+' : ''}${settings.pitch.toFixed(1)}%`}
+            </button>
           </div>
 
           <button
