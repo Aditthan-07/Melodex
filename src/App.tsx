@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   Play, Pause, SkipForward, SkipBack, Shuffle, Repeat,
-  Volume2, VolumeX, Search, FolderOpen, Upload, Disc,
-  Music, Sparkles, Zap, Sliders, Keyboard, Heart, Clock, Moon,
+  Volume2, VolumeX, Search, FolderOpen, Upload, Download, Disc,
+  Music, Sparkles, Zap, Sliders, Keyboard, Heart, Clock, Moon, Trash2,
 } from 'lucide-react';
 import { Track, TurntableSettings, PlaybackState, ShelfFilter } from './types';
 import { audioEngine } from './utils/audioEngine';
@@ -186,6 +186,7 @@ export default function App() {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const folderInputRef = useRef<HTMLInputElement>(null);
+  const crateInputRef = useRef<HTMLInputElement>(null);
 
   const activeTrack = tracks[activeTrackIndex] ?? null;
 
@@ -557,6 +558,141 @@ export default function App() {
     }
   };
 
+  const handleExportCrate = () => {
+    if (tracks.length === 0) return;
+    const exportData = {
+      version: '1.3',
+      appName: 'Melodex',
+      exportedAt: new Date().toISOString(),
+      tracks: tracks.map(t => ({
+        title: t.title,
+        artist: t.artist,
+        album: t.album,
+        duration: t.duration,
+        isDemo: t.isDemo,
+        coverUrl: t.coverUrl,
+      })),
+      favorites,
+      playStats,
+      settings: {
+        theme: settings.theme,
+        wax: settings.wax,
+        speed: settings.speed,
+        crackleVolume: settings.crackleVolume,
+        eq: settings.eq,
+        analogFX: settings.analogFX,
+      },
+    };
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `melodex-crate-${new Date().toISOString().slice(0, 10)}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  const handleImportCrate = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const text = await file.text();
+      const parsed = JSON.parse(text);
+      if (Array.isArray(parsed.tracks) && parsed.tracks.length > 0) {
+        const demoPool = generateDemoTracks();
+        const importedTracks: Track[] = parsed.tracks.map((pt: Partial<Track>, idx: number) => {
+          const fallbackDemo = demoPool[idx % demoPool.length];
+          return {
+            id: `imported_${Date.now()}_${idx}_${Math.random().toString(36).substring(2, 6)}`,
+            title: pt.title || fallbackDemo.title,
+            artist: pt.artist || fallbackDemo.artist,
+            album: pt.album || fallbackDemo.album || 'Imported Crate',
+            duration: typeof pt.duration === 'number' && pt.duration > 0 ? pt.duration : fallbackDemo.duration,
+            url: fallbackDemo.url,
+            isDemo: true,
+            coverUrl: pt.coverUrl || fallbackDemo.coverUrl,
+          };
+        });
+        setTracks(importedTracks);
+        setActiveTrackIndex(0);
+        setCurrentTime(0);
+        setDuration(importedTracks[0].duration || 0);
+        if (playbackState === 'playing') {
+          audioEngine.pause();
+          setPlaybackState('stopped');
+        }
+        await audioEngine.setTrack(importedTracks[0]);
+      }
+      if (Array.isArray(parsed.favorites)) {
+        setFavorites(parsed.favorites);
+        try {
+          localStorage.setItem('melodex_favorites', JSON.stringify(parsed.favorites));
+        } catch (err) {
+          console.debug('Failed to import favorites:', err);
+        }
+      }
+      if (parsed.playStats && typeof parsed.playStats === 'object') {
+        setPlayStats(parsed.playStats);
+        try {
+          localStorage.setItem('melodex_play_stats', JSON.stringify(parsed.playStats));
+        } catch (err) {
+          console.debug('Failed to import stats:', err);
+        }
+      }
+      if (parsed.settings && typeof parsed.settings === 'object') {
+        setSettings(prev => ({
+          ...prev,
+          theme: ['obsidian', 'walnut', 'silver', 'neon'].includes(parsed.settings.theme) ? parsed.settings.theme : prev.theme,
+          wax: ['classic', 'amber', 'ruby', 'neon'].includes(parsed.settings.wax) ? parsed.settings.wax : prev.wax,
+          speed: parsed.settings.speed === 45 ? 45 : 33,
+          crackleVolume: typeof parsed.settings.crackleVolume === 'number' ? parsed.settings.crackleVolume : prev.crackleVolume,
+          eq: parsed.settings.eq || prev.eq,
+          analogFX: parsed.settings.analogFX || prev.analogFX,
+        }));
+      }
+    } catch (err) {
+      console.error('Failed to import crate file:', err);
+    } finally {
+      if (e.target) e.target.value = '';
+    }
+  };
+
+  const handleRemoveTrack = (trackId: string, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    const idxToRemove = tracks.findIndex(t => t.id === trackId);
+    if (idxToRemove === -1) return;
+    const nextTracks = tracks.filter(t => t.id !== trackId);
+    if (nextTracks.length === 0) {
+      audioEngine.pause();
+      setPlaybackState('stopped');
+      setTracks([]);
+      setActiveTrackIndex(0);
+      setCurrentTime(0);
+      setDuration(0);
+      setSettings(p => ({ ...p, cueingLeverUp: true }));
+      return;
+    }
+    setTracks(nextTracks);
+    if (idxToRemove === activeTrackIndex) {
+      const newIdx = Math.min(idxToRemove, nextTracks.length - 1);
+      selectAndPlayTrack(newIdx);
+    } else if (idxToRemove < activeTrackIndex) {
+      setActiveTrackIndex(activeTrackIndex - 1);
+    }
+  };
+
+  const handleClearShelf = () => {
+    audioEngine.pause();
+    setPlaybackState('stopped');
+    setTracks([]);
+    setActiveTrackIndex(0);
+    setCurrentTime(0);
+    setDuration(0);
+    setSettings(p => ({ ...p, cueingLeverUp: true }));
+  };
+
   const fmt = (s: number) => {
     if (!s || isNaN(s) || !isFinite(s)) return '0:00';
     return `${Math.floor(s / 60)}:${Math.floor(s % 60).toString().padStart(2, '0')}`;
@@ -604,6 +740,7 @@ export default function App() {
         {...({ webkitdirectory: '', directory: '' } as React.InputHTMLAttributes<HTMLInputElement>)}
       />
       <input ref={fileInputRef} type="file" multiple accept="audio/*" className="hidden" onChange={handleFilesPick} />
+      <input ref={crateInputRef} type="file" accept=".json,application/json" className="hidden" onChange={handleImportCrate} />
 
       {isDraggingOver && (
         <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/85 backdrop-blur-md border-4 border-dashed border-amber-500/70 m-4 rounded-3xl animate-fade-in pointer-events-none">
@@ -746,6 +883,10 @@ export default function App() {
                   className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-zinc-900/80 hover:bg-zinc-800/80 border border-zinc-800 active:scale-95 text-zinc-200 rounded-xl text-xs font-medium transition-all cursor-pointer">
                   <Upload className="w-4 h-4 text-amber-500/80" /><span>Choose Audio Files</span>
                 </button>
+                <button onClick={() => crateInputRef.current?.click()}
+                  className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-zinc-900/50 hover:bg-zinc-800/60 border border-zinc-800/70 active:scale-95 text-zinc-300 rounded-xl text-xs font-medium transition-all cursor-pointer">
+                  <Download className="w-4 h-4 text-amber-500/80" /><span>Import Crate (.json)</span>
+                </button>
               </div>
             </div>
           ) : (
@@ -758,7 +899,30 @@ export default function App() {
                     title="Load Demo Lo-Fi Vinyl"
                     className="text-[9px] font-mono text-amber-400 hover:text-amber-300 transition-colors cursor-pointer"
                   >
-                    + Demo Vinyl
+                    + Demo
+                  </button>
+                  <button
+                    onClick={handleExportCrate}
+                    title="Export Crate (.json) with favorites & stats"
+                    className="text-[9px] font-mono text-zinc-400 hover:text-amber-300 transition-colors cursor-pointer flex items-center gap-0.5"
+                  >
+                    <Download className="w-2.5 h-2.5" />
+                    <span>Export</span>
+                  </button>
+                  <button
+                    onClick={() => crateInputRef.current?.click()}
+                    title="Import Crate (.json)"
+                    className="text-[9px] font-mono text-zinc-400 hover:text-amber-300 transition-colors cursor-pointer flex items-center gap-0.5"
+                  >
+                    <Upload className="w-2.5 h-2.5" />
+                    <span>Import</span>
+                  </button>
+                  <button
+                    onClick={handleClearShelf}
+                    title="Clear current record shelf"
+                    className="text-[9px] font-mono text-zinc-500 hover:text-rose-400 transition-colors cursor-pointer"
+                  >
+                    Clear
                   </button>
                   <span className="text-[9px] font-mono text-zinc-600">{filteredTracks.length} / {tracks.length}</span>
                 </div>
@@ -852,6 +1016,13 @@ export default function App() {
                           }`}
                         >
                           <Heart className={`w-3.5 h-3.5 ${isFav ? 'fill-current text-rose-500' : ''}`} />
+                        </button>
+                        <button
+                          onClick={(e) => handleRemoveTrack(track.id, e)}
+                          title="Remove track from crate"
+                          className="p-1 rounded-md text-zinc-600 hover:text-rose-400 opacity-0 group-hover:opacity-100 transition-colors cursor-pointer"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
                         </button>
                         {isActive && playbackState === 'playing' ? (
                           <div className="flex items-end gap-[2px] h-4">

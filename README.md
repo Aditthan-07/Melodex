@@ -47,6 +47,10 @@ No servers. No uploads. Fully client-side and privacy-first. If you don't have l
 |---|---|
 | 🎛️ **Interactive 3D Turntable** | Platter, S-curve tonearm, headshell, vinyl record with groove texture, cueing lever, pitch fader, and start/stop buttons |
 | 🎨 **Turntable Themes** | Switch between 4 custom finishes: **Classic Obsidian**, **Walnut Wood**, **Silver Technics**, and **Midnight Neon** |
+| 💿 **Vinyl Wax Pressings** | Choose between 4 distinct wax formulas: **Classic Black**, **Translucent Amber**, **Deep Ruby Red**, and **Electric Cyan Neon** |
+| 🔒 **Quartz Pitch Lock** | Technics SL-1200 style quartz lock instantly snaps playback pitch to exact 0.0% with green lock indicator |
+| 📦 **Crate Export & Import** | Export your record collection and play history to portable `.json` crates, or restore previously saved vinyl crates |
+| 🧹 **Crate Management** | Individual track ejection from the shelf and one-click crate clearing for fresh sessions |
 | 📊 **Real-Time Visualizer** | Dual vintage analog stereo **VU meters** with peak LEDs and switchable **32-band real-time audio spectrum analyzer** |
 | 🎚️ **3-Band Parametric EQ** | Web Audio Biquad filters for **Bass (100Hz)**, **Mid (1kHz)**, and **Treble (8kHz)** with curve response and acoustic presets |
 | 🔥 **Analog Warmth & Drive** | Soft-clipping tube saturation (`WaveShaperNode`) and authentic Wow & Flutter pitch drift simulation |
@@ -153,7 +157,16 @@ The optimized production build is compiled to the `dist/` directory.
 | Click the large round button | Start / stop the motor |
 | Click the smaller button | Toggle between 33 and 45 RPM |
 | Drag the pitch fader | Adjust playback speed ±8% |
+| Click the pitch badge | Quartz Lock to 0.0% speed |
 | Scroll / drag the scene | Orbit the 3D camera |
+
+### Wax Pressing & Crate Management
+
+- **Vinyl Wax Pressings**: Select your wax formulation in the header bar (`Classic`, `Amber`, `Ruby`, `Neon`) to dynamically change the material transparency, gloss, and color of the 3D record.
+- **Quartz Lock**: Click the pitch percentage badge next to the pitch fader to immediately snap the pitch back to `0.0%` with a green `LOCK` indicator.
+- **Export Crate**: Click **"Export"** in the Record Shelf header to save your tracks, favorites, and play statistics to a portable `.json` backup.
+- **Import Crate**: Click **"Import"** to restore a previously saved vinyl crate backup or migrate across devices.
+- **Remove Tracks / Clear Shelf**: Hover over any track in the shelf to reveal the trash icon to eject it, or click **"Clear"** in the shelf header to empty the deck.
 
 ---
 
@@ -211,6 +224,10 @@ melodex/
 - [x] Album art extraction from audio metadata (ID3v2 & FLAC)
 - [x] Dynamic 3D spinning vinyl center label artwork
 - [x] Interactive micro-groove timeline scrubber with needle hover cues
+- [x] Customizable vinyl wax pressings (Classic Black, Amber, Ruby, Neon)
+- [x] Technics-style Quartz Pitch Lock (0.0% snap indicator)
+- [x] Vinyl crate export & import backup system (.json)
+- [x] Granular shelf track removal and crate clearing
 - [ ] Crossfade between multiple turntables (DJ mode)
 
 ---
