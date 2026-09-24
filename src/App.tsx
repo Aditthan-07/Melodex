@@ -31,6 +31,8 @@ const loadSavedSettings = (): TurntableSettings => {
         isGrabbingHeadshell: false,
         theme: ['obsidian', 'walnut', 'silver', 'neon'].includes(parsed.theme) ? parsed.theme : 'obsidian',
         wax: ['classic', 'amber', 'ruby', 'neon'].includes(parsed.wax) ? parsed.wax : 'classic',
+        pitchRange: [8, 16, 50].includes(parsed.pitchRange) ? parsed.pitchRange : 8,
+        brakeSpeed: ['inertial', 'instant'].includes(parsed.brakeSpeed) ? parsed.brakeSpeed : 'inertial',
         eq: parsed.eq || { bass: 0, mid: 0, treble: 0 },
         analogFX: parsed.analogFX || { warmth: 0, flutter: 0 },
       };
@@ -40,6 +42,8 @@ const loadSavedSettings = (): TurntableSettings => {
   }
   return {
     pitch: 0.0,
+    pitchRange: 8,
+    brakeSpeed: 'inertial',
     speed: 33,
     cueingLeverUp: true,
     crackleVolume: 0.42,
@@ -287,13 +291,15 @@ export default function App() {
         crackleVolume: settings.crackleVolume,
         theme: settings.theme,
         wax: settings.wax,
+        pitchRange: settings.pitchRange,
+        brakeSpeed: settings.brakeSpeed,
         eq: settings.eq,
         analogFX: settings.analogFX,
       }));
     } catch (err) {
       console.debug('Failed to save settings:', err);
     }
-  }, [settings.speed, settings.crackleVolume, settings.theme, settings.wax, settings.eq, settings.analogFX]);
+  }, [settings.speed, settings.crackleVolume, settings.theme, settings.wax, settings.pitchRange, settings.brakeSpeed, settings.eq, settings.analogFX]);
 
   useEffect(() => {
     try {
@@ -850,6 +856,7 @@ export default function App() {
       <div className="w-full max-w-6xl flex-1 flex flex-col md:flex-row items-stretch gap-4 my-3 overflow-hidden min-h-0">
         <div className="flex-[1.35] min-h-[220px] md:h-full rounded-2xl overflow-hidden border border-zinc-900/80 shadow-2xl bg-[#030205]/95 flex flex-col">
           <Turntable3D activeTrack={activeTrack} isPlaying={playbackState === 'playing'} pitch={settings.pitch}
+            pitchRange={settings.pitchRange} brakeSpeed={settings.brakeSpeed}
             speedMode={settings.speed} cueingLeverUp={settings.cueingLeverUp} crackleVolume={settings.crackleVolume}
             theme={settings.theme} wax={settings.wax}
             onNeedleDrop={handleNeedleDrop} onNeedleLift={handleNeedleLift} onSettingsChange={handleSettingsFrom3D}
@@ -1161,8 +1168,20 @@ export default function App() {
           <div className="flex items-center gap-1.5">
             <span className="text-[9px] font-mono text-zinc-600 font-semibold uppercase tracking-wider">RPM</span>
             <button onClick={() => setSettings(s => ({ ...s, speed: s.speed === 33 ? 45 : 33 }))}
+              title="Toggle RPM mode (33⅓ / 45 RPM)"
               className="text-[10px] bg-zinc-900 hover:bg-zinc-800 text-zinc-300 font-mono font-bold px-2 py-0.5 rounded-md border border-zinc-800 transition-colors cursor-pointer">
               {settings.speed}
+            </button>
+            <button
+              onClick={() => setSettings(s => ({ ...s, brakeSpeed: s.brakeSpeed === 'instant' ? 'inertial' : 'instant' }))}
+              title={`Motor Brake: ${settings.brakeSpeed === 'instant' ? 'Instant Electronic Brake' : 'Mechanical Inertial Spindown'}`}
+              className={`text-[9px] font-mono px-1.5 py-0.5 rounded-md border transition-all cursor-pointer ${
+                settings.brakeSpeed === 'instant'
+                  ? 'bg-rose-500/20 text-rose-300 border-rose-500/40 font-bold'
+                  : 'bg-zinc-900 hover:bg-zinc-800 text-zinc-500 hover:text-zinc-300 border-zinc-800'
+              }`}
+            >
+              {settings.brakeSpeed === 'instant' ? 'INST' : 'INERTIA'}
             </button>
           </div>
           <div className="flex items-center gap-2">
@@ -1182,10 +1201,30 @@ export default function App() {
           </div>
           <div className="flex items-center gap-1.5">
             <Zap className="w-3 h-3 text-zinc-600 flex-shrink-0" />
-            <input type="range" min="-8" max="8" step="0.1" value={settings.pitch}
+            <div className="flex items-center bg-zinc-950/90 rounded border border-zinc-800/80 p-0.5 text-[8px] font-mono">
+              {([8, 16, 50] as const).map(range => (
+                <button
+                  key={range}
+                  onClick={() => setSettings(s => ({
+                    ...s,
+                    pitchRange: range,
+                    pitch: Math.max(-range, Math.min(range, s.pitch)),
+                  }))}
+                  title={`Pitch range ±${range}%`}
+                  className={`px-1 py-0.5 rounded transition-all cursor-pointer ${
+                    settings.pitchRange === range
+                      ? 'bg-amber-500 text-zinc-950 font-bold'
+                      : 'text-zinc-500 hover:text-zinc-300'
+                  }`}
+                >
+                  ±{range}%
+                </button>
+              ))}
+            </div>
+            <input type="range" min={-settings.pitchRange} max={settings.pitchRange} step="0.1" value={settings.pitch}
               onChange={e => setSettings(p => ({ ...p, pitch: parseFloat(e.target.value) }))}
               className="w-14 accent-amber-500"
-              title={`Pitch: ${settings.pitch > 0 ? '+' : ''}${settings.pitch.toFixed(1)}%`} />
+              title={`Pitch: ${settings.pitch > 0 ? '+' : ''}${settings.pitch.toFixed(1)}% (Range: ±${settings.pitchRange}%)`} />
             <button
               onClick={() => setSettings(p => ({ ...p, pitch: 0.0 }))}
               title={settings.pitch === 0 ? "Quartz Lock engaged (0.0%)" : "Quartz Lock: Click to reset pitch to 0.0%"}

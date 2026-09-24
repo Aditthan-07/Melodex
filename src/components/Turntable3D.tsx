@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { Track, TurntableSettings, TurntableTheme, VinylWax } from '../types';
+import { Track, TurntableSettings, TurntableTheme, VinylWax, PitchRange, BrakeSpeed } from '../types';
 import { audioEngine } from '../utils/audioEngine';
 
 interface WaxConfig {
@@ -111,6 +111,8 @@ interface Turntable3DProps {
   activeTrack: Track | null;
   isPlaying: boolean;
   pitch: number;
+  pitchRange?: PitchRange;
+  brakeSpeed?: BrakeSpeed;
   speedMode: 33 | 45;
   cueingLeverUp: boolean;
   crackleVolume: number;
@@ -127,6 +129,8 @@ export const Turntable3D: React.FC<Turntable3DProps> = ({
   activeTrack,
   isPlaying,
   pitch,
+  pitchRange = 8,
+  brakeSpeed = 'inertial',
   speedMode,
   cueingLeverUp,
   theme = 'obsidian',
@@ -193,6 +197,8 @@ export const Turntable3D: React.FC<Turntable3DProps> = ({
     currentTime,
     duration,
     pitch,
+    pitchRange: pitchRange || 8,
+    brakeSpeed: brakeSpeed || 'inertial',
     speedMode,
     cueingLeverUp,
     motorSpeed: 0.0,
@@ -212,9 +218,11 @@ export const Turntable3D: React.FC<Turntable3DProps> = ({
   useEffect(() => {
     stateRef.current.isPlaying = isPlaying;
     stateRef.current.pitch = pitch;
+    stateRef.current.pitchRange = pitchRange || 8;
+    stateRef.current.brakeSpeed = brakeSpeed || 'inertial';
     stateRef.current.speedMode = speedMode;
     stateRef.current.cueingLeverUp = cueingLeverUp;
-  }, [isPlaying, pitch, speedMode, cueingLeverUp]);
+  }, [isPlaying, pitch, pitchRange, brakeSpeed, speedMode, cueingLeverUp]);
 
   useEffect(() => {
     stateRef.current.currentTime = currentTime;
@@ -714,7 +722,8 @@ export const Turntable3D: React.FC<Turntable3DProps> = ({
           let localZ = pt.z - 0.32;
           localZ = Math.max(-0.3, Math.min(0.3, localZ));
           faderCap.position.z = 0.32 + localZ;
-          const pitchVal = -(localZ / 0.3) * 8.0;
+          const pr = stateRef.current.pitchRange || 8.0;
+          const pitchVal = -(localZ / 0.3) * pr;
           callbacksRef.current.onSettingsChange({ pitch: parseFloat(pitchVal.toFixed(2)) });
         }
         return;
@@ -766,8 +775,14 @@ export const Turntable3D: React.FC<Turntable3DProps> = ({
       elapsed += dt;
 
       const targetMotor = stateRef.current.isPlaying ? 1.0 : 0.0;
-      const motorInertia = targetMotor > stateRef.current.motorSpeed ? 0.75 : 0.42;
+      const isInstantBrake = stateRef.current.brakeSpeed === 'instant';
+      const motorInertia = targetMotor > stateRef.current.motorSpeed
+        ? 0.75
+        : (isInstantBrake ? 6.5 : 0.42);
       stateRef.current.motorSpeed += (targetMotor - stateRef.current.motorSpeed) * motorInertia * dt * 2;
+      if (!stateRef.current.isPlaying && isInstantBrake && stateRef.current.motorSpeed < 0.04) {
+        stateRef.current.motorSpeed = 0.0;
+      }
       audioEngine.setMotorSpeed(stateRef.current.motorSpeed);
 
       if (stateRef.current.motorSpeed > 0.001) {
@@ -795,7 +810,8 @@ export const Turntable3D: React.FC<Turntable3DProps> = ({
       leverRod.rotation.x = stateRef.current.cueingLeverUp ? 0.33 : -0.14;
 
       if (!isDraggingFader) {
-        faderCap.position.z = 0.32 - (stateRef.current.pitch / 8.0) * 0.3;
+        const pr = stateRef.current.pitchRange || 8.0;
+        faderCap.position.z = 0.32 - (stateRef.current.pitch / pr) * 0.3;
       }
 
       const curTheme = THEME_CONFIGS[themeRef.current || 'obsidian'];

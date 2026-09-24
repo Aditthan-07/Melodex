@@ -32,11 +32,17 @@ export interface AnalogFXSettings {
   flutter: number;   // 0 to 1 (wow & flutter)
 }
 
+export type PitchRange = 8 | 16 | 50;
+
+export type BrakeSpeed = 'inertial' | 'instant';
+
 export interface TurntableSettings {
   pitch: number;
+  pitchRange: PitchRange;
   speed: 33 | 45;
   cueingLeverUp: boolean;
   crackleVolume: number;
+  brakeSpeed: BrakeSpeed;
   isGrabbingHeadshell: boolean;
   theme: TurntableTheme;
   wax: VinylWax;
