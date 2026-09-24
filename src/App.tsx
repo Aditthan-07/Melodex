@@ -11,6 +11,7 @@ import { AudioVisualizer } from './components/AudioVisualizer';
 import { EqualizerModal } from './components/EqualizerModal';
 import { ShortcutsModal } from './components/ShortcutsModal';
 import { SleepTimerModal, SleepTimerOption } from './components/SleepTimerModal';
+import { VinylJacketModal } from './components/VinylJacketModal';
 import { generateDemoTracks } from './utils/demoGenerator';
 import { extractAudioMetadata } from './utils/tagReader';
 
@@ -149,6 +150,14 @@ export default function App() {
   const [isSleepTimerOpen, setIsSleepTimerOpen] = useState(false);
   const [sleepTimerOption, setSleepTimerOption] = useState<SleepTimerOption>(0);
   const [sleepTimerRemaining, setSleepTimerRemaining] = useState<number | null>(null);
+  const [selectedJacketTrack, setSelectedJacketTrack] = useState<Track | null>(null);
+
+  const handleUpdateTrackCover = (trackId: string, newCoverUrl: string) => {
+    setTracks(prev =>
+      prev.map(t => (t.id === trackId ? { ...t, coverUrl: newCoverUrl } : t))
+    );
+    setSelectedJacketTrack(prev => (prev?.id === trackId ? { ...prev, coverUrl: newCoverUrl } : prev));
+  };
   const sleepTimerOptionRef = useRef<SleepTimerOption>(0);
   useEffect(() => {
     sleepTimerOptionRef.current = sleepTimerOption;
@@ -1000,7 +1009,14 @@ export default function App() {
                   return (
                     <div key={track.id} onClick={() => isActive ? (playbackState === 'playing' ? handlePause() : handlePlay()) : selectAndPlayTrack(origIdx)}
                       className={`flex items-center gap-3 p-2.5 rounded-xl border transition-all cursor-pointer group ${isActive ? 'bg-zinc-900/80 border-amber-500/50 shadow-md' : 'bg-zinc-950/20 border-zinc-950 hover:bg-zinc-900/30 hover:border-zinc-900'}`}>
-                      <div className={`w-8 h-8 rounded-lg overflow-hidden border border-zinc-900/80 flex items-center justify-center flex-shrink-0 shadow-inner ${track.coverUrl ? '' : `bg-gradient-to-br ${trackColors[origIdx % trackColors.length]} to-zinc-950`}`}>
+                      <div
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedJacketTrack(track);
+                        }}
+                        title="Inspect Vinyl Gatefold Sleeve"
+                        className={`w-8 h-8 rounded-lg overflow-hidden border border-zinc-900/80 flex items-center justify-center flex-shrink-0 shadow-inner hover:scale-105 hover:border-amber-500/80 transition-all ${track.coverUrl ? '' : `bg-gradient-to-br ${trackColors[origIdx % trackColors.length]} to-zinc-950`}`}
+                      >
                         {track.coverUrl ? (
                           <img src={track.coverUrl} alt="" className="w-full h-full object-cover" />
                         ) : (
@@ -1058,7 +1074,11 @@ export default function App() {
 
       <div className="w-full max-w-6xl flex-shrink-0 rounded-xl bg-gradient-to-r from-[#0c0c10] via-[#090910] to-[#070709] border border-zinc-900/80 shadow-2xl flex flex-col md:flex-row items-center gap-3 px-4 py-3 mb-1">
         <div className="flex items-center gap-3 w-full md:w-56 flex-shrink-0">
-          <div className="w-10 h-10 rounded-xl overflow-hidden bg-zinc-950 border border-zinc-900 flex items-center justify-center flex-shrink-0 shadow-md">
+          <div
+            onClick={() => activeTrack && setSelectedJacketTrack(activeTrack)}
+            title="Inspect 12&quot; Vinyl Gatefold Jacket"
+            className="w-10 h-10 rounded-xl overflow-hidden bg-zinc-950 border border-zinc-900 flex items-center justify-center flex-shrink-0 shadow-md cursor-pointer hover:border-amber-500/80 hover:scale-105 transition-all"
+          >
             {activeTrack?.coverUrl ? (
               <img src={activeTrack.coverUrl} alt="" className="w-full h-full object-cover" />
             ) : playbackState === 'playing' ? (
@@ -1286,6 +1306,17 @@ export default function App() {
         currentTimer={sleepTimerOption}
         remainingSeconds={sleepTimerRemaining}
         onSelectOption={handleSelectSleepTimer}
+      />
+
+      <VinylJacketModal
+        track={selectedJacketTrack}
+        isOpen={Boolean(selectedJacketTrack)}
+        onClose={() => setSelectedJacketTrack(null)}
+        isFavorite={selectedJacketTrack ? isTrackFavorite(selectedJacketTrack) : false}
+        onToggleFavorite={toggleFavorite}
+        playCount={selectedJacketTrack ? getTrackStats(selectedJacketTrack).playCount : 0}
+        lastPlayed={selectedJacketTrack ? getTrackStats(selectedJacketTrack).lastPlayed : 0}
+        onUpdateCoverUrl={handleUpdateTrackCover}
       />
     </div>
   );
