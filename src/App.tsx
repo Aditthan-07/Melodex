@@ -34,7 +34,13 @@ const loadSavedSettings = (): TurntableSettings => {
         pitchRange: [8, 16, 50].includes(parsed.pitchRange) ? parsed.pitchRange : 8,
         brakeSpeed: ['inertial', 'instant'].includes(parsed.brakeSpeed) ? parsed.brakeSpeed : 'inertial',
         eq: parsed.eq || { bass: 0, mid: 0, treble: 0 },
-        analogFX: parsed.analogFX || { warmth: 0, flutter: 0 },
+        analogFX: {
+          warmth: typeof parsed.analogFX?.warmth === 'number' ? parsed.analogFX.warmth : 0,
+          flutter: typeof parsed.analogFX?.flutter === 'number' ? parsed.analogFX.flutter : 0,
+          balance: typeof parsed.analogFX?.balance === 'number' ? parsed.analogFX.balance : 0,
+          isMono: Boolean(parsed.analogFX?.isMono),
+          subsonicFilter: Boolean(parsed.analogFX?.subsonicFilter),
+        },
       };
     }
   } catch (err) {
@@ -51,7 +57,7 @@ const loadSavedSettings = (): TurntableSettings => {
     theme: 'obsidian',
     wax: 'classic',
     eq: { bass: 0, mid: 0, treble: 0 },
-    analogFX: { warmth: 0, flutter: 0 },
+    analogFX: { warmth: 0, flutter: 0, balance: 0, isMono: false, subsonicFilter: false },
   };
 };
 
@@ -1246,7 +1252,10 @@ export default function App() {
               settings.eq.mid !== 0 ||
               settings.eq.treble !== 0 ||
               settings.analogFX.warmth > 0 ||
-              settings.analogFX.flutter > 0
+              settings.analogFX.flutter > 0 ||
+              (settings.analogFX.balance && settings.analogFX.balance !== 0) ||
+              settings.analogFX.isMono ||
+              settings.analogFX.subsonicFilter
                 ? 'bg-amber-500/20 border-amber-500/50 text-amber-300 shadow-sm'
                 : 'bg-zinc-900/80 border-zinc-800 text-zinc-400 hover:text-zinc-200 hover:border-zinc-700'
             }`}

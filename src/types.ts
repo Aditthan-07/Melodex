@@ -30,6 +30,9 @@ export interface EQSettings {
 export interface AnalogFXSettings {
   warmth: number;    // 0 to 1 (tube drive / saturation)
   flutter: number;   // 0 to 1 (wow & flutter)
+  balance: number;   // -1 to +1 (stereo balance / pan)
+  isMono: boolean;   // mono summing mode
+  subsonicFilter: boolean; // 25Hz subsonic rumble filter
 }
 
 export type PitchRange = 8 | 16 | 50;

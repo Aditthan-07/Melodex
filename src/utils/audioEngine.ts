@@ -14,7 +14,16 @@ class AudioEngine {
   private flutterGain: GainNode | null = null;
   private wowOsc: OscillatorNode | null = null;
   private flutterOsc: OscillatorNode | null = null;
-  private currentAnalogFX: AnalogFXSettings = { warmth: 0, flutter: 0 };
+  private currentAnalogFX: AnalogFXSettings = {
+    warmth: 0,
+    flutter: 0,
+    balance: 0,
+    isMono: false,
+    subsonicFilter: false,
+  };
+  private pannerNode: StereoPannerNode | null = null;
+  private monoGain: GainNode | null = null;
+  private subsonicFilterNode: BiquadFilterNode | null = null;
   private masterGain: GainNode | null = null;
   private analyser: AnalyserNode | null = null;
   private currentTrack: Track | null = null;
@@ -62,6 +71,12 @@ class AudioEngine {
       window.AudioContext ||
       (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
     this.audioCtx = new AudioContextClass();
+
+    // Subsonic 25Hz Rumble Filter (eliminates tonearm warp flutter and acoustic room feedback)
+    this.subsonicFilterNode = this.audioCtx.createBiquadFilter();
+    this.subsonicFilterNode.type = 'highpass';
+    this.subsonicFilterNode.frequency.value = this.currentAnalogFX.subsonicFilter ? 25 : 5;
+    this.subsonicFilterNode.Q.value = 0.707;
 
     // Create 3-band EQ filters
     this.bassFilter = this.audioCtx.createBiquadFilter();
@@ -111,6 +126,17 @@ class AudioEngine {
       // Ignored if already started
     }
 
+    // Mono summing node
+    this.monoGain = this.audioCtx.createGain();
+    this.monoGain.channelCount = this.currentAnalogFX.isMono ? 1 : 2;
+    this.monoGain.channelCountMode = 'explicit';
+
+    // Stereo balance panner
+    if ('createStereoPanner' in this.audioCtx) {
+      this.pannerNode = this.audioCtx.createStereoPanner();
+      this.pannerNode.pan.value = this.currentAnalogFX.balance;
+    }
+
     // Master gain
     this.masterGain = this.audioCtx.createGain();
     this.masterGain.gain.value = 0.8;
@@ -124,12 +150,40 @@ class AudioEngine {
     try {
       if (!this.sourceNode) {
         this.sourceNode = this.audioCtx.createMediaElementSource(this.audio);
-        this.sourceNode.connect(this.bassFilter);
-        this.bassFilter.connect(this.midFilter);
-        this.midFilter.connect(this.trebleFilter);
-        this.trebleFilter.connect(this.warmthNode);
-        this.warmthNode.connect(this.flutterDelay);
-        this.flutterDelay.connect(this.masterGain);
+        let chain: AudioNode = this.sourceNode;
+        if (this.subsonicFilterNode) {
+          chain.connect(this.subsonicFilterNode);
+          chain = this.subsonicFilterNode;
+        }
+        if (this.bassFilter) {
+          chain.connect(this.bassFilter);
+          chain = this.bassFilter;
+        }
+        if (this.midFilter) {
+          chain.connect(this.midFilter);
+          chain = this.midFilter;
+        }
+        if (this.trebleFilter) {
+          chain.connect(this.trebleFilter);
+          chain = this.trebleFilter;
+        }
+        if (this.warmthNode) {
+          chain.connect(this.warmthNode);
+          chain = this.warmthNode;
+        }
+        if (this.flutterDelay) {
+          chain.connect(this.flutterDelay);
+          chain = this.flutterDelay;
+        }
+        if (this.monoGain) {
+          chain.connect(this.monoGain);
+          chain = this.monoGain;
+        }
+        if (this.pannerNode) {
+          chain.connect(this.pannerNode);
+          chain = this.pannerNode;
+        }
+        chain.connect(this.masterGain);
       }
     } catch (e) {
       console.warn('MediaElementAudioSourceNode initialization error:', e);
@@ -196,12 +250,22 @@ class AudioEngine {
     this.currentAnalogFX = fx;
     if (!this.audioCtx) this.initAudioContext();
     if (!this.audioCtx) return;
+    const t = this.audioCtx.currentTime;
     if (this.warmthNode) {
       this.warmthNode.curve = this.makeWarmthCurve(fx.warmth);
     }
     if (this.flutterGain) {
-      const t = this.audioCtx.currentTime;
       this.flutterGain.gain.setValueAtTime(fx.flutter * 0.0014, t);
+    }
+    if (this.subsonicFilterNode) {
+      this.subsonicFilterNode.frequency.setValueAtTime(fx.subsonicFilter ? 25 : 5, t);
+    }
+    if (this.monoGain) {
+      this.monoGain.channelCount = fx.isMono ? 1 : 2;
+    }
+    if (this.pannerNode) {
+      const pan = Math.max(-1, Math.min(1, typeof fx.balance === 'number' ? fx.balance : 0));
+      this.pannerNode.pan.setValueAtTime(pan, t);
     }
   }
 

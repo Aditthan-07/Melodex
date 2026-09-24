@@ -1,5 +1,5 @@
 import React from 'react';
-import { Sliders, X, RotateCcw, Flame, Waves } from 'lucide-react';
+import { Sliders, X, RotateCcw, Flame, Waves, Disc } from 'lucide-react';
 import { EQSettings, AnalogFXSettings } from '../types';
 
 interface EqualizerModalProps {
@@ -32,10 +32,10 @@ interface AnalogPreset {
 }
 
 const ANALOG_PRESETS: AnalogPreset[] = [
-  { name: 'clean', label: 'Pristine Digital', settings: { warmth: 0, flutter: 0 } },
-  { name: 'vinyl', label: 'Vintage Vinyl', settings: { warmth: 0.35, flutter: 0.25 } },
-  { name: 'tube', label: 'Warm Tube Amp', settings: { warmth: 0.65, flutter: 0.1 } },
-  { name: 'lofi', label: 'Worn Tape / Lo-Fi', settings: { warmth: 0.55, flutter: 0.6 } },
+  { name: 'clean', label: 'Pristine Digital', settings: { warmth: 0, flutter: 0, balance: 0, isMono: false, subsonicFilter: false } },
+  { name: 'vinyl', label: 'Vintage Vinyl', settings: { warmth: 0.35, flutter: 0.25, balance: 0, isMono: false, subsonicFilter: true } },
+  { name: 'tube', label: 'Warm Tube Amp', settings: { warmth: 0.65, flutter: 0.1, balance: 0, isMono: false, subsonicFilter: false } },
+  { name: 'lofi', label: 'Worn Tape / Lo-Fi', settings: { warmth: 0.55, flutter: 0.6, balance: 0, isMono: true, subsonicFilter: true } },
 ];
 
 export const EqualizerModal: React.FC<EqualizerModalProps> = ({
@@ -57,7 +57,7 @@ export const EqualizerModal: React.FC<EqualizerModalProps> = ({
 
   const handleReset = () => {
     onChange({ bass: 0, mid: 0, treble: 0 });
-    onAnalogFXChange({ warmth: 0, flutter: 0 });
+    onAnalogFXChange({ warmth: 0, flutter: 0, balance: 0, isMono: false, subsonicFilter: false });
   };
 
   return (
@@ -263,7 +263,8 @@ export const EqualizerModal: React.FC<EqualizerModalProps> = ({
             {ANALOG_PRESETS.map((preset) => {
               const isActive =
                 Math.abs(analogFX.warmth - preset.settings.warmth) < 0.05 &&
-                Math.abs(analogFX.flutter - preset.settings.flutter) < 0.05;
+                Math.abs(analogFX.flutter - preset.settings.flutter) < 0.05 &&
+                analogFX.isMono === preset.settings.isMono;
               return (
                 <button
                   key={preset.name}
@@ -278,6 +279,83 @@ export const EqualizerModal: React.FC<EqualizerModalProps> = ({
                 </button>
               );
             })}
+          </div>
+
+          {/* Stereo Imaging & Vinyl Phono Acoustics */}
+          <div className="pt-3 mt-3 border-t border-zinc-800/80">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[10px] font-mono text-zinc-400 uppercase tracking-wider flex items-center gap-1.5">
+                <Disc className="w-3 h-3 text-amber-400" />
+                Stereo Balance &amp; Phono Acoustics
+              </span>
+              <span className="text-[9px] font-mono text-zinc-600">Spatial DSP</span>
+            </div>
+
+            {/* Balance Slider */}
+            <div className="bg-zinc-950/60 border border-zinc-900 p-2.5 rounded-xl mb-3">
+              <div className="flex justify-between items-center text-[10px] font-mono mb-1">
+                <span className="text-zinc-300">Stereo Balance</span>
+                <button
+                  onClick={() => onAnalogFXChange({ ...analogFX, balance: 0 })}
+                  title="Reset balance to Center"
+                  className="text-amber-400 hover:text-amber-300 font-bold cursor-pointer"
+                >
+                  {analogFX.balance === 0
+                    ? 'CENTER'
+                    : analogFX.balance < 0
+                    ? `L ${Math.round(Math.abs(analogFX.balance) * 100)}%`
+                    : `R ${Math.round(analogFX.balance * 100)}%`}
+                </button>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-[9px] font-mono text-zinc-500 w-3">L</span>
+                <input
+                  type="range"
+                  min="-1"
+                  max="1"
+                  step="0.05"
+                  value={typeof analogFX.balance === 'number' ? analogFX.balance : 0}
+                  onChange={(e) => onAnalogFXChange({ ...analogFX, balance: parseFloat(e.target.value) })}
+                  className="flex-1 accent-amber-500 cursor-pointer"
+                />
+                <span className="text-[9px] font-mono text-zinc-500 w-3 text-right">R</span>
+              </div>
+            </div>
+
+            {/* Mono Summing & Subsonic Filter Buttons */}
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                onClick={() => onAnalogFXChange({ ...analogFX, isMono: !analogFX.isMono })}
+                title="Sum L+R channels to Mono (recreates authentic vintage mono vinyl pressing sound)"
+                className={`p-2 rounded-xl border text-left transition-all cursor-pointer flex flex-col gap-0.5 ${
+                  analogFX.isMono
+                    ? 'bg-amber-500/20 border-amber-500/60 text-amber-200 shadow-sm'
+                    : 'bg-zinc-950/60 border-zinc-900 text-zinc-400 hover:border-zinc-800'
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-mono font-bold">Mono Pressing</span>
+                  <span className={`w-1.5 h-1.5 rounded-full ${analogFX.isMono ? 'bg-amber-400' : 'bg-zinc-700'}`} />
+                </div>
+                <span className="text-[8px] font-mono text-zinc-500">L+R channel summing</span>
+              </button>
+
+              <button
+                onClick={() => onAnalogFXChange({ ...analogFX, subsonicFilter: !analogFX.subsonicFilter })}
+                title="25Hz High-Pass Subsonic Rumble Filter (cuts turntable platter warp rumble & room feedback)"
+                className={`p-2 rounded-xl border text-left transition-all cursor-pointer flex flex-col gap-0.5 ${
+                  analogFX.subsonicFilter
+                    ? 'bg-emerald-500/20 border-emerald-500/60 text-emerald-200 shadow-sm'
+                    : 'bg-zinc-950/60 border-zinc-900 text-zinc-400 hover:border-zinc-800'
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-mono font-bold">Subsonic Filter</span>
+                  <span className={`w-1.5 h-1.5 rounded-full ${analogFX.subsonicFilter ? 'bg-emerald-400' : 'bg-zinc-700'}`} />
+                </div>
+                <span className="text-[8px] font-mono text-zinc-500">25Hz warp rumble cut</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
