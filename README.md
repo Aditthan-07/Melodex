@@ -56,7 +56,7 @@ No servers. No uploads. Fully client-side and privacy-first. If you don't have l
 | 📖 **12" Gatefold Sleeve Inspector** | Full-screen interactive vinyl jacket with technical audio specs, custom cover art uploader, and artwork export |
 | 📦 **Crate Export & Import** | Export your record collection and play history to portable `.json` crates, or restore previously saved vinyl crates |
 | 🧹 **Crate Management** | Individual track ejection from the shelf and one-click crate clearing for fresh sessions |
-| 📊 **Real-Time Visualizer** | Dual vintage analog stereo **VU meters** with peak LEDs and switchable **32-band real-time audio spectrum analyzer** |
+| 📊 **Real-Time Visualizer** | 3-mode visualizer: 28-band **Spectrum Analyzer**, dual analog stereo **VU Meters**, and retro phosphor **CRT Oscilloscope** with trigger stabilization |
 | 🎚️ **3-Band Parametric EQ** | Web Audio Biquad filters for **Bass (100Hz)**, **Mid (1kHz)**, and **Treble (8kHz)** with curve response and acoustic presets |
 | 🔥 **Analog Warmth & Drive** | Soft-clipping tube saturation (`WaveShaperNode`) and authentic Wow & Flutter pitch drift simulation |
 | 🌙 **Turntable Sleep Timer** | Configurable sleep timer (15–60 min or End of Record) with authentic vinyl runout groove fade and tonearm auto-return |
@@ -67,7 +67,7 @@ No servers. No uploads. Fully client-side and privacy-first. If you don't have l
 | 🖱️ **Tonearm Dragging** | Physically grab and reposition the headshell to cue any point in the song |
 | 🪛 **Cueing Lever** | Click the 3D lever to drop or lift the stylus needle |
 | 📥 **Drag & Drop Loading** | Drop audio files from your desktop directly onto the turntable window |
-| ⌨️ **Keyboard Shortcut Suite** | Full physical deck control via `Space`, `Arrow` keys, `M`, `C`, `3/4`, `S`, `R`, `E`, and `?` |
+| ⌨️ **Keyboard Shortcut Suite** | Full physical deck control via `Space`, `Arrow` keys, `M`, `C`, `3/4`, `S`, `R`, `E`, `V`, and `?` |
 | 📻 **Vinyl Crackle** | Atmospheric surface noise via the Web Audio API, fully adjustable |
 | ⚙️ **Motor Inertia** | Platter realistically accelerates and decelerates; pitch drops naturally as the motor slows |
 | 📂 **Local Folder Loading** | Native `showDirectoryPicker` API with a `webkitdirectory` fallback for all browsers |
@@ -91,6 +91,7 @@ Press <kbd>?</kbd> anywhere in the app to display the interactive shortcuts shee
 | <kbd>S</kbd> | Toggle shuffle playback |
 | <kbd>R</kbd> | Toggle repeat track |
 | <kbd>E</kbd> | Open / close Tone Equalizer panel |
+| <kbd>V</kbd> | Cycle audio visualizer mode (Spectrum / VU / CRT Oscilloscope) |
 | <kbd>?</kbd> | Toggle Keyboard Shortcuts help modal |
 
 ---
@@ -240,6 +241,7 @@ melodex/
 - [x] Dual-mode motor braking (mechanical inertia vs instant electronic brake)
 - [x] Stereo balance panner, mono pressing summing, and 25Hz subsonic rumble filter
 - [x] 12" Vinyl Gatefold Sleeve inspector modal with custom artwork upload
+- [x] Retro phosphor CRT oscilloscope visualizer with trigger stabilization
 - [x] Vinyl crate export & import backup system (.json)
 - [x] Granular shelf track removal and crate clearing
 - [ ] Crossfade between multiple turntables (DJ mode)

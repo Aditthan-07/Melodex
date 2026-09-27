@@ -22,6 +22,7 @@ const SHORTCUTS: ShortcutItem[] = [
   { key: 'S', desc: 'Toggle shuffle mode', category: 'Playback' },
   { key: 'R', desc: 'Toggle repeat track', category: 'Playback' },
   { key: 'E', desc: 'Open / close Tone Equalizer', category: 'Audio' },
+  { key: 'V', desc: 'Cycle visualizer (Spectrum / VU / Oscilloscope)', category: 'Audio' },
   { key: '?', desc: 'Show / hide keyboard shortcuts', category: 'General' },
 ];
 

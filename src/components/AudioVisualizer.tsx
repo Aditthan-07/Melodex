@@ -1,11 +1,13 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { Activity, BarChart3 } from 'lucide-react';
+import { Activity, BarChart3, Waves } from 'lucide-react';
 import { VisualizerMode } from '../types';
 import { audioEngine } from '../utils/audioEngine';
 
 interface AudioVisualizerProps {
   isPlaying: boolean;
   className?: string;
+  mode?: VisualizerMode;
+  onModeChange?: (mode: VisualizerMode) => void;
 }
 
 interface MeterState {
@@ -169,9 +171,183 @@ function drawAnalogVUMeters(
   drawSingleVU(ctx, 4 + meterW + 6, 3, meterW, h - 6, meter.rightVal, 'CH-2 (R)');
 }
 
-export const AudioVisualizer: React.FC<AudioVisualizerProps> = ({ isPlaying, className = '' }) => {
+function drawOscilloscope(
+  ctx: CanvasRenderingContext2D,
+  w: number,
+  h: number,
+  wave: Uint8Array,
+  active: boolean
+) {
+  // 1. CRT Enclosure Bezel & Screen Base
+  ctx.fillStyle = '#050c08';
+  ctx.strokeStyle = '#132e1e';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.roundRect(3, 2, w - 6, h - 4, 5);
+  ctx.fill();
+  ctx.stroke();
+
+  const innerX = 5;
+  const innerY = 4;
+  const innerW = w - 10;
+  const innerH = h - 8;
+  const midY = innerY + innerH / 2;
+  const midX = innerX + innerW / 2;
+
+  // 2. Phosphor Graticule Reticle (divisions)
+  ctx.strokeStyle = 'rgba(16, 185, 129, 0.12)';
+  ctx.lineWidth = 0.75;
+
+  // Horizontal graticule divisions
+  for (let div = 1; div < 4; div++) {
+    const y = innerY + (innerH * div) / 4;
+    ctx.beginPath();
+    ctx.moveTo(innerX, y);
+    ctx.lineTo(innerX + innerW, y);
+    ctx.stroke();
+  }
+
+  // Vertical graticule divisions
+  for (let div = 1; div < 6; div++) {
+    const x = innerX + (innerW * div) / 6;
+    ctx.beginPath();
+    ctx.moveTo(x, innerY);
+    ctx.lineTo(x, innerY + innerH);
+    ctx.stroke();
+  }
+
+  // Center Crosshair Axis with Division Sub-ticks
+  ctx.strokeStyle = 'rgba(16, 185, 129, 0.28)';
+  ctx.lineWidth = 0.9;
+  ctx.beginPath();
+  ctx.moveTo(innerX, midY);
+  ctx.lineTo(innerX + innerW, midY);
+  ctx.stroke();
+
+  // Baseline tick marks (every 12px along center line)
+  ctx.beginPath();
+  for (let x = innerX; x <= innerX + innerW; x += 12) {
+    ctx.moveTo(x, midY - 1.5);
+    ctx.lineTo(x, midY + 1.5);
+  }
+  for (let y = innerY; y <= innerY + innerH; y += 6) {
+    ctx.moveTo(midX - 1.5, y);
+    ctx.lineTo(midX + 1.5, y);
+  }
+  ctx.stroke();
+
+  // 3. Trigger / Zero-Crossing Detection for Waveform Stabilization
+  let startIndex = 0;
+  if (active && wave.length > 0) {
+    // Find rising edge crossing 128 (center zero-line)
+    const searchLimit = Math.min(48, Math.floor(wave.length / 2));
+    for (let i = 0; i < searchLimit - 1; i++) {
+      if (wave[i] < 128 && wave[i + 1] >= 128) {
+        startIndex = i;
+        break;
+      }
+    }
+  }
+
+  const available = wave.length - startIndex;
+  const step = Math.max(1, available / innerW);
+
+  // 4. Waveform Path Construction
+  const path = new Path2D();
+  if (active && available > 1) {
+    for (let x = 0; x < innerW; x++) {
+      const idx = Math.min(wave.length - 1, startIndex + Math.floor(x * step));
+      const val = wave[idx] ?? 128;
+      const normalized = (val - 128) / 128; // -1 to +1
+      const y = Math.max(innerY + 1, Math.min(innerY + innerH - 1, midY - normalized * (innerH * 0.44)));
+      if (x === 0) {
+        path.moveTo(innerX + x, y);
+      } else {
+        path.lineTo(innerX + x, y);
+      }
+    }
+  } else {
+    // Idle state: Subtle micro-drift line simulating phono cartridge noise floor
+    const t = performance.now() * 0.002;
+    for (let x = 0; x < innerW; x++) {
+      const drift = Math.sin(t + x * 0.1) * 0.6;
+      const y = midY + drift;
+      if (x === 0) path.moveTo(innerX + x, y);
+      else path.lineTo(innerX + x, y);
+    }
+  }
+
+  // 5. Cathode Ray Tube Phosphor Beam Rendering
+  // Pass 1: Phosphor Bloom (Aura)
+  ctx.save();
+  ctx.shadowColor = '#10b981';
+  ctx.shadowBlur = 5;
+  ctx.strokeStyle = 'rgba(16, 185, 129, 0.45)';
+  ctx.lineWidth = 2.2;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  ctx.stroke(path);
+  ctx.restore();
+
+  // Pass 2: Sharp Core Electron Beam
+  ctx.save();
+  ctx.strokeStyle = active ? '#d1fae5' : '#6ee7b7';
+  ctx.lineWidth = 1.1;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  ctx.stroke(path);
+  ctx.restore();
+
+  // 6. Vintage Graticule Legend
+  ctx.fillStyle = 'rgba(52, 211, 153, 0.6)';
+  ctx.font = 'bold 7px monospace';
+  ctx.textAlign = 'left';
+  ctx.fillText('OSC 10ms', innerX + 4, innerY + 8);
+
+  ctx.textAlign = 'right';
+  ctx.fillText(active ? 'TRIG LOCK' : 'GND 0V', innerX + innerW - 4, innerY + 8);
+}
+
+export const AudioVisualizer: React.FC<AudioVisualizerProps> = ({
+  isPlaying,
+  className = '',
+  mode: controlledMode,
+  onModeChange,
+}) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [mode, setMode] = useState<VisualizerMode>('spectrum');
+  const [internalMode, setInternalMode] = useState<VisualizerMode>(() => {
+    try {
+      const saved = localStorage.getItem('melodex_visualizer_mode');
+      if (saved === 'spectrum' || saved === 'vu' || saved === 'oscilloscope') {
+        return saved;
+      }
+    } catch {
+      // ignore
+    }
+    return 'spectrum';
+  });
+
+  const activeMode = controlledMode ?? internalMode;
+
+  const handleModeSelect = (newMode: VisualizerMode) => {
+    if (onModeChange) {
+      onModeChange(newMode);
+    } else {
+      setInternalMode(newMode);
+    }
+    try {
+      localStorage.setItem('melodex_visualizer_mode', newMode);
+    } catch {
+      // ignore
+    }
+  };
+
+  const cycleMode = () => {
+    const modes: VisualizerMode[] = ['spectrum', 'vu', 'oscilloscope'];
+    const nextIdx = (modes.indexOf(activeMode) + 1) % modes.length;
+    handleModeSelect(modes[nextIdx]);
+  };
+
   const animFrameRef = useRef<number>(0);
 
   const meterRef = useRef<MeterState>({
@@ -188,7 +364,7 @@ export const AudioVisualizer: React.FC<AudioVisualizerProps> = ({ isPlaying, cla
     if (!ctx) return;
 
     const freqArray = new Uint8Array(64);
-    const waveArray = new Uint8Array(64);
+    const waveArray = new Uint8Array(128);
 
     const render = () => {
       animFrameRef.current = requestAnimationFrame(render);
@@ -214,10 +390,12 @@ export const AudioVisualizer: React.FC<AudioVisualizerProps> = ({ isPlaying, cla
         }
       }
 
-      if (mode === 'spectrum') {
+      if (activeMode === 'spectrum') {
         drawSpectrum(ctx, width, height, freqArray, meterRef.current.peaks);
-      } else {
+      } else if (activeMode === 'vu') {
         drawAnalogVUMeters(ctx, width, height, freqArray, isPlaying, meterRef.current);
+      } else {
+        drawOscilloscope(ctx, width, height, waveArray, isPlaying);
       }
 
       ctx.restore();
@@ -230,36 +408,45 @@ export const AudioVisualizer: React.FC<AudioVisualizerProps> = ({ isPlaying, cla
         cancelAnimationFrame(animFrameRef.current);
       }
     };
-  }, [isPlaying, mode]);
+  }, [isPlaying, activeMode]);
 
   return (
     <div className={`relative flex items-center bg-zinc-950/70 border border-zinc-900 rounded-xl px-2.5 py-1.5 ${className}`}>
       <div className="flex items-center gap-1.5 mr-2">
         <button
-          onClick={() => setMode('spectrum')}
+          onClick={() => handleModeSelect('spectrum')}
           title="Spectrum Analyzer"
           className={`p-1 rounded cursor-pointer transition-colors ${
-            mode === 'spectrum' ? 'bg-amber-500/20 text-amber-300' : 'text-zinc-600 hover:text-zinc-300'
+            activeMode === 'spectrum' ? 'bg-amber-500/20 text-amber-300' : 'text-zinc-600 hover:text-zinc-300'
           }`}
         >
           <BarChart3 className="w-3.5 h-3.5" />
         </button>
         <button
-          onClick={() => setMode('vu')}
+          onClick={() => handleModeSelect('vu')}
           title="Analog Stereo VU Meter"
           className={`p-1 rounded cursor-pointer transition-colors ${
-            mode === 'vu' ? 'bg-amber-500/20 text-amber-300' : 'text-zinc-600 hover:text-zinc-300'
+            activeMode === 'vu' ? 'bg-amber-500/20 text-amber-300' : 'text-zinc-600 hover:text-zinc-300'
           }`}
         >
           <Activity className="w-3.5 h-3.5" />
+        </button>
+        <button
+          onClick={() => handleModeSelect('oscilloscope')}
+          title="Retro CRT Oscilloscope (Press V to toggle)"
+          className={`p-1 rounded cursor-pointer transition-colors ${
+            activeMode === 'oscilloscope' ? 'bg-emerald-500/20 text-emerald-400' : 'text-zinc-600 hover:text-zinc-300'
+          }`}
+        >
+          <Waves className="w-3.5 h-3.5" />
         </button>
       </div>
 
       <canvas
         ref={canvasRef}
         className="w-36 sm:w-44 h-9 block cursor-pointer"
-        onClick={() => setMode(m => (m === 'spectrum' ? 'vu' : 'spectrum'))}
-        title="Click to toggle visualizer style"
+        onClick={cycleMode}
+        title="Click to toggle visualizer style (Spectrum / VU / Oscilloscope) [V]"
       />
     </div>
   );

@@ -4,7 +4,7 @@ import {
   Volume2, VolumeX, Search, FolderOpen, Upload, Download, Disc,
   Music, Sparkles, Zap, Sliders, Keyboard, Heart, Clock, Moon, Trash2,
 } from 'lucide-react';
-import { Track, TurntableSettings, PlaybackState, ShelfFilter } from './types';
+import { Track, TurntableSettings, PlaybackState, ShelfFilter, VisualizerMode } from './types';
 import { audioEngine } from './utils/audioEngine';
 import { Turntable3D } from './components/Turntable3D';
 import { AudioVisualizer } from './components/AudioVisualizer';
@@ -151,6 +151,26 @@ export default function App() {
   const [sleepTimerOption, setSleepTimerOption] = useState<SleepTimerOption>(0);
   const [sleepTimerRemaining, setSleepTimerRemaining] = useState<number | null>(null);
   const [selectedJacketTrack, setSelectedJacketTrack] = useState<Track | null>(null);
+  const [visualizerMode, setVisualizerMode] = useState<VisualizerMode>(() => {
+    try {
+      const saved = localStorage.getItem('melodex_visualizer_mode');
+      if (saved === 'spectrum' || saved === 'vu' || saved === 'oscilloscope') {
+        return saved;
+      }
+    } catch {
+      // ignore
+    }
+    return 'spectrum';
+  });
+
+  const handleVisualizerModeChange = (mode: VisualizerMode) => {
+    setVisualizerMode(mode);
+    try {
+      localStorage.setItem('melodex_visualizer_mode', mode);
+    } catch {
+      // ignore
+    }
+  };
 
   const handleUpdateTrackCover = (trackId: string, newCoverUrl: string) => {
     setTracks(prev =>
@@ -397,6 +417,19 @@ export default function App() {
       } else if (e.key === 'e' || e.key === 'E') {
         e.preventDefault();
         setIsEQOpen(o => !o);
+      } else if (e.key === 'v' || e.key === 'V') {
+        e.preventDefault();
+        setVisualizerMode(prev => {
+          const modes: VisualizerMode[] = ['spectrum', 'vu', 'oscilloscope'];
+          const nextIdx = (modes.indexOf(prev) + 1) % modes.length;
+          const nextMode = modes[nextIdx];
+          try {
+            localStorage.setItem('melodex_visualizer_mode', nextMode);
+          } catch {
+            // ignore
+          }
+          return nextMode;
+        });
       } else if (e.key === '?') {
         e.preventDefault();
         setIsShortcutsOpen(o => !o);
@@ -602,6 +635,7 @@ export default function App() {
         crackleVolume: settings.crackleVolume,
         eq: settings.eq,
         analogFX: settings.analogFX,
+        visualizerMode,
       },
     };
     const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
@@ -663,6 +697,14 @@ export default function App() {
         }
       }
       if (parsed.settings && typeof parsed.settings === 'object') {
+        if (['spectrum', 'vu', 'oscilloscope'].includes(parsed.settings.visualizerMode)) {
+          setVisualizerMode(parsed.settings.visualizerMode);
+          try {
+            localStorage.setItem('melodex_visualizer_mode', parsed.settings.visualizerMode);
+          } catch {
+            // ignore
+          }
+        }
         setSettings(prev => ({
           ...prev,
           theme: ['obsidian', 'walnut', 'silver', 'neon'].includes(parsed.settings.theme) ? parsed.settings.theme : prev.theme,
@@ -780,7 +822,11 @@ export default function App() {
         </div>
 
         <div className="hidden sm:flex items-center">
-          <AudioVisualizer isPlaying={playbackState === 'playing'} />
+          <AudioVisualizer
+            isPlaying={playbackState === 'playing'}
+            mode={visualizerMode}
+            onModeChange={handleVisualizerModeChange}
+          />
         </div>
 
         <div className="flex items-center gap-2">

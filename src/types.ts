@@ -53,4 +53,4 @@ export interface TurntableSettings {
   analogFX: AnalogFXSettings;
 }
 
-export type VisualizerMode = 'spectrum' | 'vu';
+export type VisualizerMode = 'spectrum' | 'vu' | 'oscilloscope';
