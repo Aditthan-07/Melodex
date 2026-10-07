@@ -35,54 +35,51 @@
 
 ---
 
-## Table of Contents
+## 📑 Table of Contents
 
-- [Features](#features)
-- [Keyboard Shortcuts](#keyboard-shortcuts)
-- [Tech Stack](#tech-stack)
-- [Getting Started](#getting-started)
-- [Build for Production](#build-for-production)
-- [Usage Guide](#usage-guide)
-- [Project Structure](#project-structure)
-- [Browser Compatibility](#browser-compatibility)
-- [Roadmap](#roadmap)
-- [Contributing](#contributing)
-- [License](#license)
+- [Core Features](#-core-features)
+  - [1. Physical 3D Turntable Simulation](#1--physical-3d-turntable-simulation)
+  - [2. Audiophile Phono DSP Sound Engine](#2--audiophile-phono-dsp-sound-engine)
+  - [3. Precision Real-Time Visualizer Console](#3--precision-real-time-visualizer-console)
+  - [4. Vinyl Wax, Gatefold & Crate Management](#4--vinyl-wax-gatefold--crate-management)
+- [Quick Start](#-quick-start)
+- [Interactive Controls & Shortcuts](#-interactive-controls--shortcuts)
+- [Tech Stack](#-tech-stack)
+- [Project Architecture](#-project-architecture)
+- [Roadmap](#-roadmap)
+- [Contributing](#-contributing)
+- [License](#-license)
 
 ---
 
-## Features
+## 🎛️ Core Features
 
-| Category | Details |
-|---|---|
-| 🎛️ **Interactive 3D Turntable** | Platter, S-curve tonearm, headshell, vinyl record with groove texture, cueing lever, pitch fader, and start/stop buttons |
-| ⚡ **Multi-Range Pitch Fader** | Switch between **±8%**, **±16%**, and **±50% Ultra-Pitch** ranges with live platter strobe response |
-| 🛑 **Motor Brake Mode** | Toggle between **Mechanical Inertia** (natural slow spin-down) and **Instant Electronic Brake** |
-| 🎨 **Turntable Themes** | Switch between 4 custom finishes: **Classic Obsidian**, **Walnut Wood**, **Silver Technics**, and **Midnight Neon** |
-| 💿 **Vinyl Wax Pressings** | Choose between 4 distinct wax formulas: **Classic Black**, **Translucent Amber**, **Deep Ruby Red**, and **Electric Cyan Neon** |
-| 🔒 **Quartz Pitch Lock** | Technics SL-1200 style quartz lock instantly snaps playback pitch to exact 0.0% with green lock indicator |
-| ⚖️ **Stereo Balance & Spatial Phono** | Continuous L/R balance with center-detent snap, plus **Mono Pressing Summing** for vintage mono pressings |
-| 🛡️ **25Hz Subsonic Rumble Filter** | High-pass filter eliminating ultra-low turntable warp rumble and acoustic speaker feedback |
-| 📖 **12" Gatefold Sleeve Inspector** | Full-screen interactive vinyl jacket with technical audio specs, custom cover art uploader, and artwork export |
-| 📦 **Crate Export & Import** | Export your record collection and play history to portable `.json` crates, or restore previously saved vinyl crates |
-| 🧹 **Crate Management** | Individual track ejection from the shelf and one-click crate clearing for fresh sessions |
-| 📊 **Real-Time Visualizer** | 3-mode visualizer: 28-band **Spectrum Analyzer**, dual analog stereo **VU Meters**, and retro phosphor **CRT Oscilloscope** with trigger stabilization |
-| 🎚️ **3-Band Parametric EQ** | Web Audio Biquad filters for **Bass (100Hz)**, **Mid (1kHz)**, and **Treble (8kHz)** with curve response and acoustic presets |
-| 🔥 **Analog Warmth & Drive** | Soft-clipping tube saturation (`WaveShaperNode`) and authentic Wow & Flutter pitch drift simulation |
-| 🌙 **Turntable Sleep Timer** | Configurable sleep timer (15–60 min or End of Record) with authentic vinyl runout groove fade and tonearm auto-return |
-| 🖼️ **ID3 Album Art & 3D Vinyl Label** | Client-side ID3v2/FLAC metadata parser rendering extracted album artwork directly on the spinning 3D vinyl record |
-| ❤️ **Favorites & Play History** | Star favorite tracks, record listen counts (`Spun 4x`), and filter by **All**, **Favorites ❤️**, or **History 🕒** |
-| 📍 **Interactive Groove Scrubber** | Micro-groove timeline scrubber with needle hover cues and physical record zones (Lead-in, Outer, Mid, Inner) |
-| 🎷 **Procedural Vinyl Demos** | In-browser lo-fi jazz synthesis ("Midnight Groove" & "Analog Nostalgia") generates authentic WAV vinyl records on demand |
-| 🖱️ **Tonearm Dragging** | Physically grab and reposition the headshell to cue any point in the song |
-| 🪛 **Cueing Lever** | Click the 3D lever to drop or lift the stylus needle |
-| 📥 **Drag & Drop Loading** | Drop audio files from your desktop directly onto the turntable window |
-| ⌨️ **Keyboard Shortcut Suite** | Full physical deck control via `Space`, `Arrow` keys, `M`, `C`, `3/4`, `S`, `R`, `E`, `V`, and `?` |
-| 📻 **Vinyl Crackle** | Atmospheric surface noise via the Web Audio API, fully adjustable |
-| ⚙️ **Motor Inertia** | Platter realistically accelerates and decelerates; pitch drops naturally as the motor slows |
-| 📂 **Local Folder Loading** | Native `showDirectoryPicker` API with a `webkitdirectory` fallback for all browsers |
-| 🔍 **Searchable Shelf** | Filter your loaded library by title, artist, or album in real time |
-| 💾 **Settings Persistence** | Saves your preferred theme, volume, crackle level, speed, EQ profile, and analog FX in `localStorage` |
+### 1. 🎚️ Physical 3D Turntable Simulation
+* **Tactile Mechanical Deck** — Orbit around a physically modeled turntable with platter, responsive S-curve tonearm, headshell with needle drag-cueing, and animated cueing lever.
+* **Realistic Motor Dynamics** — Platter acceleration curves with authentic pitch-drop on spindown, or switch instantly to electromagnetic braking (`INST`).
+* **Multi-Range Pitch Fader** — Switch between standard `±8%`, `±16%`, and `±50% Ultra-Pitch` ranges with live strobe rim feedback.
+* **Quartz Pitch Lock** — Technics SL-1200 style quartz lock instantly snaps playback pitch to exact `0.0%` with green status indicator.
+* **Speed Select** — Authentic 33⅓ and 45 RPM rotation controls with synchronized Web Audio playback resampling.
+
+### 2. 🔊 Audiophile Phono DSP Sound Engine
+* **3-Band Parametric EQ** — Precision Web Audio Biquad filters for Bass (100 Hz), Mid (1 kHz), and Treble (8 kHz) with curve response and acoustic presets.
+* **Analog Warmth & Drive** — Harmonic tube amplifier saturation via custom `WaveShaperNode` soft-clipping alongside subtle wow & flutter pitch drift.
+* **Surface Noise & Subsonic Rumble** — Dial in authentic atmospheric vinyl crackle, backed by a **25 Hz Subsonic Rumble Filter** to eliminate ultra-low tonearm flutter.
+* **Spatial Phono & Mono Pressing** — Continuous L/R balance with center-detent snap, plus dedicated Mono Summing essential for vintage mono pressings.
+* **Audiophile Sleep Timer** — Configurable timer (15–60 min or End of Record) featuring authentic runout groove fade and tonearm auto-return.
+
+### 3. 📊 Precision Real-Time Visualizer Console
+* **Analog VU Meters** — Dual needle ballistics monitoring stereo channel levels with vintage warm backlighting.
+* **28-Band Spectrum Analyzer** — Crisp real-time frequency distribution with smooth decay.
+* **Phosphor CRT Oscilloscope** — Retro vector waveform scope with trigger stabilization and authentic green glow.
+
+### 4. 🎨 Vinyl Wax, Gatefold & Crate Management
+* **4 Wax Formulations** — Switch between `Classic Black`, `Translucent Amber`, `Deep Ruby Red`, and `Electric Cyan Neon` with dynamic PBR shader materials.
+* **4 Deck Finishes** — Customize the turntable chassis with `Classic Obsidian`, `Walnut Wood`, `Silver Technics`, and `Midnight Neon`.
+* **12" Gatefold Sleeve Inspector** — Full-screen interactive vinyl jacket with technical audio specs (format, size, duration, spin count), custom artwork uploader, and image export.
+* **Dynamic Center Label** — Client-side ID3v2/FLAC metadata parser extracts album art and maps it directly onto the spinning 3D record.
+* **Crate Portability** — Star favorites, track spin counts, filter library views, and export/import your entire collection via portable `.json` crates.
+* **Procedural Lo-Fi Generator** — Instant browser synthesis of original lo-fi jazz vinyl records (*Midnight Groove* and *Analog Nostalgia*) with zero external dependencies.
 
 ---
 
