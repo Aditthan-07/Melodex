@@ -8,11 +8,13 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Three.js](https://img.shields.io/badge/Three.js-r184-000?logo=three.js&logoColor=white)](https://threejs.org/)
 [![Web Audio](https://img.shields.io/badge/Web_Audio-API-FF4081)](https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](#license)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](#-contributing--license)
 
 <br/>
 
 Melodex brings physical vinyl listening to the web. Load your local audio files or generate procedural lo-fi jazz vinyl directly in your browser with interactive 3D tonearm controls, real-time visualizers, and authentic analog sound effects.
+
+<p align="center"><i>🎧 Tip: Use headphones for the best stereo phono soundstage and analog warmth.</i></p>
 
 </div>
 
