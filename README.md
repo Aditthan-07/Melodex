@@ -37,16 +37,18 @@
 
 ## 📑 Table of Contents
 
-- [Core Features](#-core-features)
-  - [1. Physical 3D Turntable Simulation](#1--physical-3d-turntable-simulation)
+- [Core Features](#️-core-features)
+  - [1. Physical 3D Turntable Simulation](#1-️-physical-3d-turntable-simulation)
   - [2. Audiophile Phono DSP Sound Engine](#2--audiophile-phono-dsp-sound-engine)
   - [3. Precision Real-Time Visualizer Console](#3--precision-real-time-visualizer-console)
   - [4. Vinyl Wax, Gatefold & Crate Management](#4--vinyl-wax-gatefold--crate-management)
 - [Quick Start](#-quick-start)
-- [Interactive Controls & Shortcuts](#-interactive-controls--shortcuts)
-- [Tech Stack](#-tech-stack)
+- [Interactive Controls & Keyboard Matrix](#-interactive-controls--keyboard-matrix)
+- [Supported Audio & Ingestion](#-supported-audio--ingestion)
+- [Tech Stack](#️-tech-stack)
 - [Project Architecture](#-project-architecture)
-- [Roadmap](#-roadmap)
+- [Browser Compatibility](#-browser-compatibility)
+- [Roadmap & Vision](#-roadmap--vision)
 - [Contributing](#-contributing)
 - [License](#-license)
 
@@ -169,88 +171,92 @@ Melodex processes all audio locally with zero network upload or cloud storage:
 
 ---
 
-## Project Structure
+## 📂 Project Architecture
 
 ```
 melodex/
 ├── src/
 │   ├── components/
-│   │   ├── Turntable3D.tsx       # Three.js 3D turntable scene, vinyl label & interactive meshes
-│   │   ├── AudioVisualizer.tsx   # Real-time stereo VU meter & spectrum analyzer
-│   │   ├── EqualizerModal.tsx    # 3-band parametric EQ, Analog Warmth & Stereo Phono console
-│   │   ├── SleepTimerModal.tsx   # Audiophile sleep timer & tonearm auto-return modal
-│   │   ├── VinylJacketModal.tsx  # 12" Gatefold vinyl jacket sleeve & artwork inspector
-│   │   └── ShortcutsModal.tsx    # Keyboard shortcuts reference overlay
+│   │   ├── Turntable3D.tsx       # Three.js 3D deck, interactive tonearm & vinyl mesh
+│   │   ├── AudioVisualizer.tsx   # Dual analog VU meters, spectrum & CRT oscilloscope
+│   │   ├── EqualizerModal.tsx    # 3-band parametric EQ, tube saturation & stereo console
+│   │   ├── SleepTimerModal.tsx   # Runout groove fade & mechanical tonearm auto-return
+│   │   ├── VinylJacketModal.tsx  # 12" Gatefold sleeve viewer & audio metadata inspector
+│   │   └── ShortcutsModal.tsx    # Interactive keyboard shortcuts overlay
 │   ├── utils/
-│   │   ├── audioEngine.ts        # Web Audio graph (EQ, tube drive, wow/flutter, analyser, crackle)
-│   │   ├── tagReader.ts          # Zero-dependency ID3v2/FLAC tag & album art parser
-│   │   └── demoGenerator.ts      # Procedural lo-fi jazz vinyl synthesis engine
-│   ├── App.tsx                    # Main layout, shelf filters, groove timeline, state management
-│   ├── types.ts                   # Shared TypeScript interfaces & models
-│   ├── index.css                  # Tailwind + custom animations
-│   ├── main.tsx                   # React entry point
-│   └── vite-env.d.ts              # Vite type declarations
-├── public/
-├── index.html
-├── vite.config.ts
-├── tailwind.config.js
-├── tsconfig.json
-├── package.json
-└── README.md
+│   │   ├── audioEngine.ts        # Modular Web Audio DSP node graph & signal routing
+│   │   ├── tagReader.ts          # Zero-dependency ID3v2/FLAC tag & album artwork extractor
+│   │   └── demoGenerator.ts      # Procedural lo-fi jazz synthesis engine
+│   ├── App.tsx                   # Master layout, shelf filter state & groove scrubber
+│   ├── types.ts                  # Central TypeScript domain interfaces
+│   └── main.tsx                  # Application entry point
+├── public/                       # Static branding & vector icon assets
+├── index.html                    # Root HTML document with preloaded analog fonts
+└── vite.config.ts                # Build configuration & Vite plugins
 ```
 
 ---
 
-## Browser Compatibility
+## 🌐 Browser Compatibility
 
-| Browser | Folder Picker | Web Audio & 3D | Drag & Drop |
-|---|---|---|---|
-| Chrome / Edge 86+ | Native `showDirectoryPicker` | ✅ Full | ✅ Full |
-| Firefox | Fallback `webkitdirectory` | ✅ Full | ✅ Full |
-| Safari 15.2+ | Fallback `webkitdirectory` | ✅ Full | ✅ Full |
+Melodex relies on modern web standards (WebGL 2.0, Web Audio API, and File System Access API):
 
----
-
-## Roadmap
-
-- [x] Real-time audio visualizer & analog VU meter
-- [x] 3-band parametric equalizer panel & presets
-- [x] Analog warmth suite (tube amp saturation & wow/flutter drift)
-- [x] Custom turntable finishes (Obsidian, Walnut, Silver, Neon)
-- [x] Procedural vintage vinyl demo synthesis
-- [x] Viewport drag-and-drop audio loading
-- [x] Keyboard shortcut navigation suite
-- [x] Turntable sleep timer with vinyl runout fade & auto-return
-- [x] Album art extraction from audio metadata (ID3v2 & FLAC)
-- [x] Dynamic 3D spinning vinyl center label artwork
-- [x] Interactive micro-groove timeline scrubber with needle hover cues
-- [x] Customizable vinyl wax pressings (Classic Black, Amber, Ruby, Neon)
-- [x] Technics-style Quartz Pitch Lock (0.0% snap indicator)
-- [x] Multi-range pitch fader (±8%, ±16%, ±50% Ultra-pitch)
-- [x] Dual-mode motor braking (mechanical inertia vs instant electronic brake)
-- [x] Stereo balance panner, mono pressing summing, and 25Hz subsonic rumble filter
-- [x] 12" Vinyl Gatefold Sleeve inspector modal with custom artwork upload
-- [x] Retro phosphor CRT oscilloscope visualizer with trigger stabilization
-- [x] Vinyl crate export & import backup system (.json)
-- [x] Granular shelf track removal and crate clearing
-- [ ] Crossfade between multiple turntables (DJ mode)
+| Browser | Platform | 3D Engine & Audio DSP | Local Directory Scan | Drag & Drop |
+| :--- | :--- | :---: | :---: | :---: |
+| **Google Chrome / Chromium** | Desktop (v86+) | ✅ Full | ✅ Native `showDirectoryPicker` | ✅ Full |
+| **Microsoft Edge** | Desktop (v86+) | ✅ Full | ✅ Native `showDirectoryPicker` | ✅ Full |
+| **Mozilla Firefox** | Desktop (v90+) | ✅ Full | ✅ Fallback `webkitdirectory` | ✅ Full |
+| **Apple Safari** | macOS (v15.2+) | ✅ Full | ✅ Fallback `webkitdirectory` | ✅ Full |
 
 ---
 
-## Contributing
+## 🗺️ Roadmap & Vision
 
-Contributions are welcome! To contribute:
+### Shipped Milestones
+* **v1.0 — Core Deck Simulation**: 3D platter, S-curve tonearm, needle cueing, procedural Lo-Fi demo engine, and local folder ingestion.
+* **v1.2 — Phono DSP Suite**: 3-band parametric EQ, tube amp saturation, wow & flutter, atmospheric vinyl crackle, and sleep timer.
+* **v1.3 — Wax & Crate Portability**: 4 wax pressings, 4 deck chassis finishes, gatefold sleeve inspector, and JSON crate backups.
+* **v1.4 — Precision Monitoring & Physics**: Phosphor CRT oscilloscope, Technics Quartz Pitch Lock (±8%, ±16%, ±50%), motor inertia vs instant brake, stereo panner, and 25Hz rumble filter.
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/your-feature`)
-3. Commit your changes (`git commit -m "Add your feature"`)
-4. Push to the branch (`git push origin feature/your-feature`)
-5. Open a Pull Request
+### Future Horizon
+- [ ] **Dual-Deck DJ Mode**: Two independent 3D turntables with crossfader, slipmats, and beatmatch pitch-bending.
+- [ ] **Web MIDI Controller Mapping**: Plug-and-play mapping for physical DJ controllers and MIDI rotary encoders.
+- [ ] **Custom Vinyl Label Styler**: In-app sticker designer and custom groove color grading.
+- [ ] **Acoustic Convolver Room Reverb**: Simulated vinyl listening room impulses (living room, studio, jazz lounge).
+
+---
+
+## 🤝 Contributing
+
+Contributions, feedback, and feature suggestions are warmly welcomed!
+
+1. **Fork** the repository on GitHub.
+2. **Create** your feature branch:
+   ```bash
+   git checkout -b feature/amazing-feature
+   ```
+3. **Commit** your changes with clear messages:
+   ```bash
+   git commit -m "feat(deck): add custom platter slipmat pattern"
+   ```
+4. **Push** to your fork:
+   ```bash
+   git push origin feature/amazing-feature
+   ```
+5. **Open a Pull Request** describing your additions and changes.
+
+---
+
+## 📄 License
+
+Distributed under the **MIT License**. See [`LICENSE`](LICENSE) for complete details.
 
 ---
 
 <div align="center">
 
-Made with 🎶, Three.js, and the Web Audio API
+Crafted with 🖤 by [**Aditthan-07**](https://github.com/Aditthan-07)
+
+*Powered by Three.js & Web Audio API*
 
 </div>
