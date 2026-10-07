@@ -62,27 +62,17 @@ npm run preview  # Previews production build locally
 
 ---
 
-## 🎮 Interactive Controls & Keyboard Matrix
+## ⌨️ Keyboard Shortcuts
 
-Melodex combines intuitive mouse/touch 3D interactions with tactile keyboard shortcuts for a genuine physical deck feel:
+| Key | Action | Key | Action |
+| :---: | :--- | :---: | :--- |
+| <kbd>Space</kbd> | Play / Pause Motor | <kbd>C</kbd> | Cueing Lever (Drop / Lift) |
+| <kbd>3</kbd> / <kbd>4</kbd> | 33⅓ / 45 RPM Speed | <kbd>←</kbd> / <kbd>→</kbd> | Seek (±5s) |
+| <kbd>↑</kbd> / <kbd>↓</kbd> | Volume Up / Down | <kbd>M</kbd> | Mute / Unmute |
+| <kbd>E</kbd> | Equalizer & Phono FX | <kbd>V</kbd> | Cycle Visualizers |
+| <kbd>S</kbd> / <kbd>R</kbd> | Shuffle / Repeat | <kbd>?</kbd> | All Shortcuts Modal |
 
-| Feature / Action | Physical Deck Interaction | Keyboard Shortcut |
-| :--- | :--- | :---: |
-| **Platter Motor** | Click circular START / STOP button | <kbd>Space</kbd> |
-| **Tonearm Needle** | Click & drag headshell to cue any groove point | — |
-| **Cueing Lever** | Click miniature mechanical lever to drop / lift needle | <kbd>C</kbd> |
-| **Speed Mode** | Toggle 33⅓ / 45 RPM speed selector buttons | <kbd>3</kbd> / <kbd>4</kbd> |
-| **Groove Scrubber** | Hover & click micro-groove timeline scrubber | <kbd>←</kbd> / <kbd>→</kbd> (±5s) |
-| **Master Volume** | Rotate master volume dial | <kbd>↑</kbd> / <kbd>↓</kbd> (±5%) |
-| **Audio Mute** | Click speaker icon | <kbd>M</kbd> |
-| **Pitch & Tempo** | Drag pitch slider (`±8%`, `±16%`, `±50%` ranges) | — |
-| **Quartz Lock** | Click pitch badge to snap instantly to 0.0% | — |
-| **Motor Brake Mode** | Click BRAKE button (`INERTIA` slow roll vs `INST` brake) | — |
-| **Tone Equalizer & FX** | Open sound console modal | <kbd>E</kbd> |
-| **Cycle Visualizers** | Switch between Stereo VU, Spectrum, and CRT Scope | <kbd>V</kbd> |
-| **Playback Modes** | Toggle shuffle or repeat in shelf header | <kbd>S</kbd> / <kbd>R</kbd> |
-| **Shortcuts Sheet** | Click help icon in navigation bar | <kbd>?</kbd> |
-| **3D Camera Orbit** | Left-click drag to orbit, right-click to pan, scroll to zoom | — |
+*Tip: You can also drag the tonearm headshell directly on the 3D record to cue grooves.*
 
 ---
 
