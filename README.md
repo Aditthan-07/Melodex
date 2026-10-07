@@ -18,24 +18,7 @@ Melodex brings physical vinyl listening to the web. Load your local audio files 
 
 ---
 
-## 📑 Table of Contents
 
-- [Core Features](#️-core-features)
-  - [1. Physical 3D Turntable Simulation](#1-️-physical-3d-turntable-simulation)
-  - [2. Audiophile Phono DSP Sound Engine](#2--audiophile-phono-dsp-sound-engine)
-  - [3. Precision Real-Time Visualizer Console](#3--precision-real-time-visualizer-console)
-  - [4. Vinyl Wax, Gatefold & Crate Management](#4--vinyl-wax-gatefold--crate-management)
-- [Quick Start](#-quick-start)
-- [Interactive Controls & Keyboard Matrix](#-interactive-controls--keyboard-matrix)
-- [Supported Audio & Ingestion](#-supported-audio--ingestion)
-- [Tech Stack](#️-tech-stack)
-- [Project Architecture](#-project-architecture)
-- [Browser Compatibility](#-browser-compatibility)
-- [Roadmap & Vision](#-roadmap--vision)
-- [Contributing](#-contributing)
-- [License](#-license)
-
----
 
 ## 🎛️ Core Features
 
