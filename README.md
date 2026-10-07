@@ -18,8 +18,6 @@ Melodex brings physical vinyl listening to the web. Load your local audio files 
 
 ---
 
-
-
 ## ✨ Features
 
 - **3D Interactive Turntable** — Orbit camera, drag-to-cue tonearm, mechanical cueing lever, and 33⅓ / 45 RPM playback.
@@ -69,92 +67,13 @@ Open [`http://localhost:5173`](http://localhost:5173) in your browser.
 
 ---
 
-## 📂 Project Architecture
+## 🤝 Contributing & License
 
-```
-melodex/
-├── src/
-│   ├── components/
-│   │   ├── Turntable3D.tsx       # Three.js 3D deck, interactive tonearm & vinyl mesh
-│   │   ├── AudioVisualizer.tsx   # Dual analog VU meters, spectrum & CRT oscilloscope
-│   │   ├── EqualizerModal.tsx    # 3-band parametric EQ, tube saturation & stereo console
-│   │   ├── SleepTimerModal.tsx   # Runout groove fade & mechanical tonearm auto-return
-│   │   ├── VinylJacketModal.tsx  # 12" Gatefold sleeve viewer & audio metadata inspector
-│   │   └── ShortcutsModal.tsx    # Interactive keyboard shortcuts overlay
-│   ├── utils/
-│   │   ├── audioEngine.ts        # Modular Web Audio DSP node graph & signal routing
-│   │   ├── tagReader.ts          # Zero-dependency ID3v2/FLAC tag & album artwork extractor
-│   │   └── demoGenerator.ts      # Procedural lo-fi jazz synthesis engine
-│   ├── App.tsx                   # Master layout, shelf filter state & groove scrubber
-│   ├── types.ts                  # Central TypeScript domain interfaces
-│   └── main.tsx                  # Application entry point
-├── public/                       # Static branding & vector icon assets
-├── index.html                    # Root HTML document with preloaded analog fonts
-└── vite.config.ts                # Build configuration & Vite plugins
-```
+Contributions, bug reports, and ideas are warmly welcome. Feel free to open an issue or submit a pull request!
 
----
-
-## 🌐 Browser Compatibility
-
-Melodex relies on modern web standards (WebGL 2.0, Web Audio API, and File System Access API):
-
-| Browser | Platform | 3D Engine & Audio DSP | Local Directory Scan | Drag & Drop |
-| :--- | :--- | :---: | :---: | :---: |
-| **Google Chrome / Chromium** | Desktop (v86+) | ✅ Full | ✅ Native `showDirectoryPicker` | ✅ Full |
-| **Microsoft Edge** | Desktop (v86+) | ✅ Full | ✅ Native `showDirectoryPicker` | ✅ Full |
-| **Mozilla Firefox** | Desktop (v90+) | ✅ Full | ✅ Fallback `webkitdirectory` | ✅ Full |
-| **Apple Safari** | macOS (v15.2+) | ✅ Full | ✅ Fallback `webkitdirectory` | ✅ Full |
-
----
-
-## 🗺️ Roadmap & Vision
-
-### Shipped Milestones
-* **v1.0 — Core Deck Simulation**: 3D platter, S-curve tonearm, needle cueing, procedural Lo-Fi demo engine, and local folder ingestion.
-* **v1.2 — Phono DSP Suite**: 3-band parametric EQ, tube amp saturation, wow & flutter, atmospheric vinyl crackle, and sleep timer.
-* **v1.3 — Wax & Crate Portability**: 4 wax pressings, 4 deck chassis finishes, gatefold sleeve inspector, and JSON crate backups.
-* **v1.4 — Precision Monitoring & Physics**: Phosphor CRT oscilloscope, Technics Quartz Pitch Lock (±8%, ±16%, ±50%), motor inertia vs instant brake, stereo panner, and 25Hz rumble filter.
-
-### Future Horizon
-- [ ] **Dual-Deck DJ Mode**: Two independent 3D turntables with crossfader, slipmats, and beatmatch pitch-bending.
-- [ ] **Web MIDI Controller Mapping**: Plug-and-play mapping for physical DJ controllers and MIDI rotary encoders.
-- [ ] **Custom Vinyl Label Styler**: In-app sticker designer and custom groove color grading.
-- [ ] **Acoustic Convolver Room Reverb**: Simulated vinyl listening room impulses (living room, studio, jazz lounge).
-
----
-
-## 🤝 Contributing
-
-Contributions, feedback, and feature suggestions are warmly welcomed!
-
-1. **Fork** the repository on GitHub.
-2. **Create** your feature branch:
-   ```bash
-   git checkout -b feature/amazing-feature
-   ```
-3. **Commit** your changes with clear messages:
-   ```bash
-   git commit -m "feat(deck): add custom platter slipmat pattern"
-   ```
-4. **Push** to your fork:
-   ```bash
-   git push origin feature/amazing-feature
-   ```
-5. **Open a Pull Request** describing your additions and changes.
-
----
-
-## 📄 License
-
-Distributed under the **MIT License**. See [`LICENSE`](LICENSE) for complete details.
-
----
+This project is licensed under the [MIT License](LICENSE).
 
 <div align="center">
-
-Crafted with 🖤 by [**Aditthan-07**](https://github.com/Aditthan-07)
-
-*Powered by Three.js & Web Audio API*
-
+  <br/>
+  Crafted with 🖤 by <a href="https://github.com/Aditthan-07"><b>Aditthan-07</b></a>
 </div>
