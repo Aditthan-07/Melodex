@@ -20,34 +20,14 @@ Melodex brings physical vinyl listening to the web. Load your local audio files 
 
 
 
-## 🎛️ Core Features
+## ✨ Features
 
-### 1. 🎚️ Physical 3D Turntable Simulation
-* **Tactile Mechanical Deck** — Orbit around a physically modeled turntable with platter, responsive S-curve tonearm, headshell with needle drag-cueing, and animated cueing lever.
-* **Realistic Motor Dynamics** — Platter acceleration curves with authentic pitch-drop on spindown, or switch instantly to electromagnetic braking (`INST`).
-* **Multi-Range Pitch Fader** — Switch between standard `±8%`, `±16%`, and `±50% Ultra-Pitch` ranges with live strobe rim feedback.
-* **Quartz Pitch Lock** — Technics SL-1200 style quartz lock instantly snaps playback pitch to exact `0.0%` with green status indicator.
-* **Speed Select** — Authentic 33⅓ and 45 RPM rotation controls with synchronized Web Audio playback resampling.
-
-### 2. 🔊 Audiophile Phono DSP Sound Engine
-* **3-Band Parametric EQ** — Precision Web Audio Biquad filters for Bass (100 Hz), Mid (1 kHz), and Treble (8 kHz) with curve response and acoustic presets.
-* **Analog Warmth & Drive** — Harmonic tube amplifier saturation via custom `WaveShaperNode` soft-clipping alongside subtle wow & flutter pitch drift.
-* **Surface Noise & Subsonic Rumble** — Dial in authentic atmospheric vinyl crackle, backed by a **25 Hz Subsonic Rumble Filter** to eliminate ultra-low tonearm flutter.
-* **Spatial Phono & Mono Pressing** — Continuous L/R balance with center-detent snap, plus dedicated Mono Summing essential for vintage mono pressings.
-* **Audiophile Sleep Timer** — Configurable timer (15–60 min or End of Record) featuring authentic runout groove fade and tonearm auto-return.
-
-### 3. 📊 Precision Real-Time Visualizer Console
-* **Analog VU Meters** — Dual needle ballistics monitoring stereo channel levels with vintage warm backlighting.
-* **28-Band Spectrum Analyzer** — Crisp real-time frequency distribution with smooth decay.
-* **Phosphor CRT Oscilloscope** — Retro vector waveform scope with trigger stabilization and authentic green glow.
-
-### 4. 🎨 Vinyl Wax, Gatefold & Crate Management
-* **4 Wax Formulations** — Switch between `Classic Black`, `Translucent Amber`, `Deep Ruby Red`, and `Electric Cyan Neon` with dynamic PBR shader materials.
-* **4 Deck Finishes** — Customize the turntable chassis with `Classic Obsidian`, `Walnut Wood`, `Silver Technics`, and `Midnight Neon`.
-* **12" Gatefold Sleeve Inspector** — Full-screen interactive vinyl jacket with technical audio specs (format, size, duration, spin count), custom artwork uploader, and image export.
-* **Dynamic Center Label** — Client-side ID3v2/FLAC metadata parser extracts album art and maps it directly onto the spinning 3D record.
-* **Crate Portability** — Star favorites, track spin counts, filter library views, and export/import your entire collection via portable `.json` crates.
-* **Procedural Lo-Fi Generator** — Instant browser synthesis of original lo-fi jazz vinyl records (*Midnight Groove* and *Analog Nostalgia*) with zero external dependencies.
+- **3D Interactive Turntable** — Orbit camera, drag-to-cue tonearm, mechanical cueing lever, and 33⅓ / 45 RPM playback.
+- **Pitch & Motor Dynamics** — Multi-range pitch fader (±8%, ±16%, ±50%), instant 0.0% quartz lock, and inertial spin-down vs instant braking.
+- **Analog Sound Engine** — 3-band EQ, tube saturation, wow & flutter, atmospheric vinyl crackle, and stereo balance / mono summing.
+- **Real-Time Visualizers** — Dual analog VU meters, 28-band spectrum analyzer, and retro phosphor CRT oscilloscope.
+- **Custom Wax & Aesthetics** — 4 vinyl wax colors, 4 chassis finishes, 12" gatefold jacket inspector, and procedural lo-fi jazz demo generator.
+- **Private & Local-First** — Pure client-side playback, ID3/FLAC metadata extraction, zero server uploads, and JSON crate export/import.
 
 ---
 
