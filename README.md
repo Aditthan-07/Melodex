@@ -33,32 +33,16 @@ Melodex brings physical vinyl listening to the web. Load your local audio files 
 
 ## 🚀 Quick Start
 
-### Prerequisites
-* **Node.js** v18+ & **npm** v9+ (or `pnpm` / `bun`)
-* Modern Chromium, Firefox, or Safari browser with WebGL & Web Audio API support
-
-### Installation & Local Dev
-
 ```bash
-# Clone the repository
 git clone https://github.com/Aditthan-07/Melodex.git
 cd Melodex
-
-# Install dependencies
 npm install
-
-# Launch development server
 npm run dev
 ```
 
-Visit [`http://localhost:5173`](http://localhost:5173) in your browser.
+Open [`http://localhost:5173`](http://localhost:5173) in your browser.
 
-### Production Build
-
-```bash
-npm run build    # Compiles type-checked, minified bundle to dist/
-npm run preview  # Previews production build locally
-```
+> **Supported Formats:** Load `.mp3`, `.flac`, `.wav`, `.m4a`, `.ogg`, or `.aac` files via folder select, drag-and-drop, or click **"Spin Demo Vinyl"** for procedural lo-fi jazz.
 
 ---
 
@@ -76,34 +60,12 @@ npm run preview  # Previews production build locally
 
 ---
 
-## 🎵 Supported Audio & Ingestion
+## 🛠️ Built With
 
-Melodex processes all audio locally with zero network upload or cloud storage:
-
-<p align="center">
-  <img src="https://img.shields.io/badge/MP3-Lossy-3b82f6?style=flat-square" alt="MP3" />
-  <img src="https://img.shields.io/badge/FLAC-Lossless-10b981?style=flat-square" alt="FLAC" />
-  <img src="https://img.shields.io/badge/WAV-PCM-6366f1?style=flat-square" alt="WAV" />
-  <img src="https://img.shields.io/badge/M4A%20/%20AAC-MPEG4-ec4899?style=flat-square" alt="M4A" />
-  <img src="https://img.shields.io/badge/OGG%20/%20OPUS-Vorbis-8b5cf6?style=flat-square" alt="OGG" />
-</p>
-
-* 📂 **Local Directory Picker** — Click *"Open Local Music Folder"* to scan your music library recursively via the File System Access API (with seamless `webkitdirectory` fallback).
-* 📥 **Viewport Drag & Drop** — Drag audio files directly from Finder / File Explorer onto the 3D turntable deck.
-* 🎷 **Procedural Synthesis** — Click *"Spin Demo Vinyl"* to synthesize lo-fi jazz records on-demand without any audio files.
-
----
-
-## 🛠️ Tech Stack
-
-| Layer | Technologies & Libraries | Purpose |
-| :--- | :--- | :--- |
-| **Core Architecture** | React 19, TypeScript 5, Vite 8 | Reactive component tree, strict type safety, fast HMR |
-| **3D Graphics Engine** | Three.js r184, OrbitControls | PBR materials, custom mesh geometries, dynamic canvas textures |
-| **Audio DSP Graph** | Web Audio API, HTML5 Audio | BiquadFilter EQ, WaveShaper saturation, AnalyserNode visualizers |
-| **Metadata Parsing** | Custom Tag Reader (`tagReader.ts`) | Zero-dependency ID3v2 & FLAC metadata and picture extractor |
-| **Styling & Icons** | Tailwind CSS v3, Lucide React | Modern dark-mode UI, custom animations, clean vector iconography |
-| **Typography** | Playfair Display, Inter, JetBrains Mono | Vintage analog typography paired with crisp technical metrics |
+- **Framework:** React 19 & TypeScript (bundled with Vite)
+- **3D Graphics:** Three.js (r184)
+- **Audio DSP:** Web Audio API (`BiquadFilter`, `WaveShaper`, `Analyser`)
+- **Styling & UI:** Tailwind CSS v3 & Lucide React icons
 
 ---
 
