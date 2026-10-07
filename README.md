@@ -83,107 +83,89 @@
 
 ---
 
-## Keyboard Shortcuts
-
-Press <kbd>?</kbd> anywhere in the app to display the interactive shortcuts sheet.
-
-| Shortcut | Action |
-|---|---|
-| <kbd>Space</kbd> | Toggle motor and audio play / pause |
-| <kbd>←</kbd> / <kbd>→</kbd> | Seek backward / forward 5 seconds |
-| <kbd>↑</kbd> / <kbd>↓</kbd> | Adjust volume up / down (5%) |
-| <kbd>M</kbd> | Toggle mute / unmute |
-| <kbd>C</kbd> | Toggle tonearm cueing lever (drop / lift needle) |
-| <kbd>3</kbd> / <kbd>4</kbd> | Switch speed mode (33⅓ RPM / 45 RPM) |
-| <kbd>S</kbd> | Toggle shuffle playback |
-| <kbd>R</kbd> | Toggle repeat track |
-| <kbd>E</kbd> | Open / close Tone Equalizer panel |
-| <kbd>V</kbd> | Cycle audio visualizer mode (Spectrum / VU / CRT Oscilloscope) |
-| <kbd>?</kbd> | Toggle Keyboard Shortcuts help modal |
-
----
-
-## Tech Stack
-
-| Layer | Technology |
-|---|---|
-| Framework | React 19 + TypeScript |
-| Build Tool | Vite |
-| 3D Rendering | Three.js r184 + OrbitControls |
-| Audio Engine | Web Audio API + HTML `<audio>` element (`BiquadFilterNode`, `AnalyserNode`, `ScriptProcessorNode`) |
-| Styling | Tailwind CSS v3 |
-| Icons | Lucide React |
-| Fonts | Playfair Display, Inter, JetBrains Mono |
-
----
-
-## Getting Started
+## 🚀 Quick Start
 
 ### Prerequisites
+* **Node.js** v18+ & **npm** v9+ (or `pnpm` / `bun`)
+* Modern Chromium, Firefox, or Safari browser with WebGL & Web Audio API support
 
-- **Node.js** v18 or higher
-- **npm** v9 or higher
-
-### Installation
+### Installation & Local Dev
 
 ```bash
+# Clone the repository
 git clone https://github.com/Aditthan-07/Melodex.git
 cd Melodex
+
+# Install dependencies
 npm install
+
+# Launch development server
 npm run dev
 ```
 
-Then open **http://localhost:5173** in your browser.
+Visit [`http://localhost:5173`](http://localhost:5173) in your browser.
 
----
-
-## Build for Production
+### Production Build
 
 ```bash
-npm run build
-npm run preview
+npm run build    # Compiles type-checked, minified bundle to dist/
+npm run preview  # Previews production build locally
 ```
-
-The optimized production build is compiled to the `dist/` directory.
 
 ---
 
-## Usage Guide
+## 🎮 Interactive Controls & Keyboard Matrix
 
-### Loading Music
+Melodex combines intuitive mouse/touch 3D interactions with tactile keyboard shortcuts for a genuine physical deck feel:
 
-1. **Spin Demo Vinyl (Lo-Fi Jazz)**
-   Click **"Spin Demo Vinyl (Lo-Fi Jazz)"** on the empty shelf panel to instantly synthesize vintage lo-fi records directly in your browser.
-2. **Open Local Music Folder** *(recommended)*
-   Click **"Open Local Music Folder"** to select a music directory. Melodex parses all supported audio formats (`mp3`, `wav`, `flac`, `m4a`, `ogg`, `aac`, `opus`) automatically.
-3. **Drag & Drop**
-   Drag audio files from your desktop or file manager and drop them anywhere onto the player deck.
-4. **Choose Individual Files**
-   Click **"Choose Audio Files"** to pick specific audio tracks using your system dialog.
+| Feature / Action | Physical Deck Interaction | Keyboard Shortcut |
+| :--- | :--- | :---: |
+| **Platter Motor** | Click circular START / STOP button | <kbd>Space</kbd> |
+| **Tonearm Needle** | Click & drag headshell to cue any groove point | — |
+| **Cueing Lever** | Click miniature mechanical lever to drop / lift needle | <kbd>C</kbd> |
+| **Speed Mode** | Toggle 33⅓ / 45 RPM speed selector buttons | <kbd>3</kbd> / <kbd>4</kbd> |
+| **Groove Scrubber** | Hover & click micro-groove timeline scrubber | <kbd>←</kbd> / <kbd>→</kbd> (±5s) |
+| **Master Volume** | Rotate master volume dial | <kbd>↑</kbd> / <kbd>↓</kbd> (±5%) |
+| **Audio Mute** | Click speaker icon | <kbd>M</kbd> |
+| **Pitch & Tempo** | Drag pitch slider (`±8%`, `±16%`, `±50%` ranges) | — |
+| **Quartz Lock** | Click pitch badge to snap instantly to 0.0% | — |
+| **Motor Brake Mode** | Click BRAKE button (`INERTIA` slow roll vs `INST` brake) | — |
+| **Tone Equalizer & FX** | Open sound console modal | <kbd>E</kbd> |
+| **Cycle Visualizers** | Switch between Stereo VU, Spectrum, and CRT Scope | <kbd>V</kbd> |
+| **Playback Modes** | Toggle shuffle or repeat in shelf header | <kbd>S</kbd> / <kbd>R</kbd> |
+| **Shortcuts Sheet** | Click help icon in navigation bar | <kbd>?</kbd> |
+| **3D Camera Orbit** | Left-click drag to orbit, right-click to pan, scroll to zoom | — |
 
-### Turntable Controls
+---
 
-| Interaction | Action |
-|---|---|
-| Drag the headshell | Cue the needle to any position on the record |
-| Click the cueing lever | Toggle needle drop / lift |
-| Click the large round button | Start / stop the motor |
-| Click the smaller button | Toggle between 33 and 45 RPM |
-| Drag the pitch fader | Adjust playback speed based on selected range |
-| Click range buttons (±8% / ±16% / ±50%) | Switch pitch fader resolution |
-| Click the BRAKE button | Toggle Instant Brake vs Mechanical Inertial Slow-Down |
-| Click the pitch badge | Quartz Lock to 0.0% speed |
-| Scroll / drag the scene | Orbit the 3D camera |
+## 🎵 Supported Audio & Ingestion
 
-### Wax Pressing, Phono DSP & Crate Management
+Melodex processes all audio locally with zero network upload or cloud storage:
 
-- **Vinyl Wax Pressings**: Select your wax formulation in the header bar (`Classic`, `Amber`, `Ruby`, `Neon`) to dynamically change the material transparency, gloss, and color of the 3D record.
-- **Quartz Pitch Lock & Multi-Range Fader**: Toggle between `±8%`, `±16%`, and `±50%` ultra-pitch ranges. Click the pitch badge anytime to snap directly back to `0.0%` with green `LOCK` confirmation.
-- **Motor Braking**: Switch between `INERTIA` (natural platter spin-down) and `INST` (immediate electromagnetic stopping).
-- **Stereo Balance & Spatial Phono**: Open the EQ &amp; FX sound console to adjust continuous L/R stereo balance with center detent, toggle **Mono Pressing Summing** (essential for authentic vintage mono pressings), or engage the **25Hz Subsonic Rumble Filter** to eliminate tonearm warp flutter and acoustic room feedback.
-- **12" Gatefold Sleeve Inspector**: Click any record cover thumbnail in the shelf or player bar to inspect a high-resolution gatefold vinyl jacket complete with technical audio payload specs (file format, file size, duration, spin count), custom artwork uploader, and image export.
-- **Export & Import Crate**: Click **"Export"** in the Record Shelf header to save your collection, favorites, and play statistics to a `.json` backup. Use **"Import"** to restore.
-- **Remove Tracks / Clear Shelf**: Hover over any track in the shelf to reveal the trash icon to eject it, or click **"Clear"** in the shelf header to empty the deck.
+<p align="center">
+  <img src="https://img.shields.io/badge/MP3-Lossy-3b82f6?style=flat-square" alt="MP3" />
+  <img src="https://img.shields.io/badge/FLAC-Lossless-10b981?style=flat-square" alt="FLAC" />
+  <img src="https://img.shields.io/badge/WAV-PCM-6366f1?style=flat-square" alt="WAV" />
+  <img src="https://img.shields.io/badge/M4A%20/%20AAC-MPEG4-ec4899?style=flat-square" alt="M4A" />
+  <img src="https://img.shields.io/badge/OGG%20/%20OPUS-Vorbis-8b5cf6?style=flat-square" alt="OGG" />
+</p>
+
+* 📂 **Local Directory Picker** — Click *"Open Local Music Folder"* to scan your music library recursively via the File System Access API (with seamless `webkitdirectory` fallback).
+* 📥 **Viewport Drag & Drop** — Drag audio files directly from Finder / File Explorer onto the 3D turntable deck.
+* 🎷 **Procedural Synthesis** — Click *"Spin Demo Vinyl"* to synthesize lo-fi jazz records on-demand without any audio files.
+
+---
+
+## 🛠️ Tech Stack
+
+| Layer | Technologies & Libraries | Purpose |
+| :--- | :--- | :--- |
+| **Core Architecture** | React 19, TypeScript 5, Vite 8 | Reactive component tree, strict type safety, fast HMR |
+| **3D Graphics Engine** | Three.js r184, OrbitControls | PBR materials, custom mesh geometries, dynamic canvas textures |
+| **Audio DSP Graph** | Web Audio API, HTML5 Audio | BiquadFilter EQ, WaveShaper saturation, AnalyserNode visualizers |
+| **Metadata Parsing** | Custom Tag Reader (`tagReader.ts`) | Zero-dependency ID3v2 & FLAC metadata and picture extractor |
+| **Styling & Icons** | Tailwind CSS v3, Lucide React | Modern dark-mode UI, custom animations, clean vector iconography |
+| **Typography** | Playfair Display, Inter, JetBrains Mono | Vintage analog typography paired with crisp technical metrics |
 
 ---
 
