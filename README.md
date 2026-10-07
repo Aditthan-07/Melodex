@@ -2,26 +2,36 @@
 
 # 🎧 Melodex
 
-### A High-Fidelity 3D Vinyl Turntable Music Player
+### High-Fidelity 3D Vinyl Turntable & Audio Player
 
-*A richly-detailed, physically-simulated turntable rendered entirely in the browser.*
+*An interactive, physically-modeled vinyl listening experience running 100% client-side in your browser.*
 
-[![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white)](https://react.dev/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![Vite](https://img.shields.io/badge/Vite-Build-646CFF?logo=vite&logoColor=white)](https://vitejs.dev/)
-[![Three.js](https://img.shields.io/badge/Three.js-r184-000000?logo=three.js&logoColor=white)](https://threejs.org/)
-[![Tailwind CSS](https://img.shields.io/badge/Tailwind-v3-06B6D4?logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](#license)
+<p align="center">
+  <a href="https://react.dev/"><img src="https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=black" alt="React 19" /></a>
+  <a href="https://www.typescriptlang.org/"><img src="https://img.shields.io/badge/TypeScript-5-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript 5" /></a>
+  <a href="https://threejs.org/"><img src="https://img.shields.io/badge/Three.js-r184-black?style=for-the-badge&logo=three.js&logoColor=white" alt="Three.js" /></a>
+  <a href="https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API"><img src="https://img.shields.io/badge/Web_Audio_API-DSP-FF4081?style=for-the-badge&logo=soundcharts&logoColor=white" alt="Web Audio API" /></a>
+  <a href="https://tailwindcss.com/"><img src="https://img.shields.io/badge/Tailwind_CSS-v3-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white" alt="Tailwind CSS" /></a>
+  <a href="https://vitejs.dev/"><img src="https://img.shields.io/badge/Vite-Build-646CFF?style=for-the-badge&logo=vite&logoColor=white" alt="Vite" /></a>
+  <a href="#license"><img src="https://img.shields.io/badge/License-MIT-F59E0B?style=for-the-badge" alt="MIT License" /></a>
+</p>
+
+<p align="center">
+  <b>🔒 100% Client-Side & Private</b> &nbsp;•&nbsp;
+  <b>📁 Zero Uploads / Local First</b> &nbsp;•&nbsp;
+  <b>🎛️ Physical 3D Simulation</b> &nbsp;•&nbsp;
+  <b>🎷 Built-in Lo-Fi Generator</b>
+</p>
 
 </div>
 
 ---
 
-## Overview
+## 🌟 At a Glance
 
-**Melodex** is a browser-based music player that recreates the experience of a physical vinyl turntable in interactive 3D. Built with **React**, **TypeScript**, and **Three.js**, it lets you load your own local audio library and play it through a turntable you can actually touch — drag the tonearm, flip the cueing lever, ride the pitch fader, monitor analog VU meters, tweak a 3-band parametric EQ, and hear authentic vinyl crackle, all simulated client-side with the Web Audio API.
+**Melodex** bridges tactile vintage analog hardware with cutting-edge web graphics and digital signal processing. Drop your personal audio library directly onto a 3D direct-drive turntable: cue the needle with natural inertia, sculpt your acoustic profile with parametric EQ, simulate tube harmonic saturation, and inspect high-resolution gatefold vinyl sleeves — with zero cloud latency and complete data privacy.
 
-No servers. No uploads. Fully client-side and privacy-first. If you don't have local audio on hand, use the built-in **procedural Lo-Fi Jazz demo vinyl** to start spinning right away!
+> **Instant Preview:** Don't have local music files handy? Melodex includes a built-in **procedural Lo-Fi Jazz vinyl synthesis engine** so you can start spinning records the moment you launch the app.
 
 ---
 
